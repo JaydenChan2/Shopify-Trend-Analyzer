@@ -8,7 +8,11 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
     })
   end
 
-  teardown { MappingOverridesController.wikipedia_client = nil }
+  teardown do
+    MappingOverridesController.wikipedia_client = nil
+    MappingOverridesController.locked_without_password = false
+    ENV.delete("OVERRIDES_PASSWORD")
+  end
 
   test "saves an override for a real article and keeps as_of" do
     post mapping_overrides_path, params: { term: "Weighted Blanket", article: "Weighted blanket", as_of: "2017-06-12" }
@@ -40,6 +44,38 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
     post mapping_overrides_path, params: { term: "fryer", article: "Weighted blanket" }
     assert_equal 1, MappingOverride.count
     refute MappingOverride.for_term("fryer").ignored?
+  end
+
+  test "public demo (production, no password): saving and removing are refused" do
+    MappingOverridesController.locked_without_password = true
+    override = MappingOverride.create!(term_key: "mug", ignored: true)
+
+    post mapping_overrides_path, params: { term: "Gift Card", ignored: "1", as_of: "2017-06-12" }
+    assert_redirected_to dashboard_path(as_of: "2017-06-12")
+    assert_match "turned off", flash[:alert]
+
+    delete mapping_override_path(override)
+    assert_equal ["mug"], MappingOverride.pluck(:term_key)
+  end
+
+  test "with OVERRIDES_PASSWORD set, a wrong or missing password gets 401" do
+    ENV["OVERRIDES_PASSWORD"] = "s3cret"
+    post mapping_overrides_path, params: { term: "Gift Card", ignored: "1" }
+    assert_response :unauthorized
+
+    wrong = ActionController::HttpAuthentication::Basic.encode_credentials("admin", "nope")
+    post mapping_overrides_path, params: { term: "Gift Card", ignored: "1" }, headers: { "Authorization" => wrong }
+    assert_response :unauthorized
+    assert_equal 0, MappingOverride.count
+  end
+
+  test "with OVERRIDES_PASSWORD set, the right password works even when locked" do
+    ENV["OVERRIDES_PASSWORD"] = "s3cret"
+    MappingOverridesController.locked_without_password = true
+    right = ActionController::HttpAuthentication::Basic.encode_credentials("admin", "s3cret")
+    post mapping_overrides_path, params: { term: "Gift Card", ignored: "1" }, headers: { "Authorization" => right }
+    assert_redirected_to dashboard_path
+    assert MappingOverride.for_term("gift card").ignored?
   end
 
   test "remove deletes the override" do

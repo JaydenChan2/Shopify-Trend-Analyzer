@@ -3,9 +3,18 @@
 #   POST   /mapping_overrides       term=..., ignored=1     "don't track" this term
 #   DELETE /mapping_overrides/:id                           back to automatic search
 # Every action redirects back to the table, keeping ?as_of so replays aren't lost.
+#
+# Who may change overrides:
+#   OVERRIDES_PASSWORD set   -> anyone with the password (HTTP basic auth, username OVERRIDES_USER or "admin")
+#   not set, development/test -> anyone (your own machine)
+#   not set, production       -> nobody: on a public demo, visitors can't change what others see
 class MappingOverridesController < ApplicationController
   # Tests swap in a fake so they never call Wikipedia.
   class_attribute :wikipedia_client, default: nil
+  # True in production; tests flip it to check the public-demo behaviour.
+  class_attribute :locked_without_password, default: Rails.env.production?
+
+  before_action :require_editor
 
   def create
     override = MappingOverride.find_or_initialize_by(term_key: params[:term].to_s.strip.downcase)
@@ -38,6 +47,21 @@ class MappingOverridesController < ApplicationController
   end
 
   private
+
+  # A before_action: if it redirects or asks for a password, create/destroy never run.
+  def require_editor
+    password = ENV["OVERRIDES_PASSWORD"].presence
+    if password
+      user = ENV["OVERRIDES_USER"].presence || "admin"
+      # The browser shows its own username/password box; secure_compare avoids timing leaks.
+      authenticate_or_request_with_http_basic("Mapping overrides") do |given_user, given_password|
+        ActiveSupport::SecurityUtils.secure_compare(given_user, user) &
+          ActiveSupport::SecurityUtils.secure_compare(given_password, password)
+      end
+    elsif locked_without_password
+      back_to_table(alert: "Fixing mappings is turned off on this public demo. Run the app locally to try it.")
+    end
+  end
 
   def wikipedia
     self.class.wikipedia_client || WikipediaClient.new
