@@ -35,12 +35,21 @@
     <tbody>
       <% @rows.each do |row| %>
         <tr>
-          <td><%= row.product[:title] %></td>
           <td>
-            <%= row.mapping&.term %>
-            <% if row.mapping %><span class="muted">(from <%= row.mapping.source %>)</span><% end %>
+            <% if row.products.size == 1 %>
+              <%= row.products.first[:title] %>
+            <% else %>
+              <details>
+                <summary><%= row.products.first[:title] %> <span class="count">+<%= row.products.size - 1 %> more</span></summary>
+                <ul><% row.products.drop(1).each do |product| %><li><%= product[:title] %></li><% end %></ul>
+              </details>
+            <% end %>
           </td>
-          <td><%= row.mapping&.article || "—" %></td>
+          <td>
+            <%= row.mapping.term %>
+            <span class="muted">(from <%= row.mapping.source %>)</span>
+          </td>
+          <td><%= row.article || "—" %></td>
           <% if row.error %>
             <td><span class="label label-error">Error</span></td>
             <td>—</td>
@@ -51,6 +60,7 @@
             <td>
               <%= row.result.reason %>
               <% if row.result.onset_week %><span class="muted">Surge began week of <%= row.result.onset_week %>.</span><% end %>
+              <% row.notes.each do |note| %><div class="note">⚠ <%= note %></div><% end %>
             </td>
           <% end %>
         </tr>

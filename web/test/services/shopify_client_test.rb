@@ -5,12 +5,12 @@ class ShopifyClientTest < ActiveSupport::TestCase
 
   # Fake HTTP: records calls, answers token and GraphQL requests from canned responses.
   class FakeHttp
-    attr_reader :token_requests, :graphql_requests
+    attr_reader :token_requests, :graphql_requests, :graphql_bodies
 
     def initialize(token_response: ["200", { "access_token" => "tok-1", "expires_in" => 86_400 }],
                    graphql_response: ["200", { "data" => { "products" => { "nodes" => [] } } }])
       @token_response, @graphql_response = token_response, graphql_response
-      @token_requests, @graphql_requests = [], []
+      @token_requests, @graphql_requests, @graphql_bodies = [], [], []
     end
 
     def call(uri, body, headers)
@@ -19,6 +19,7 @@ class ShopifyClientTest < ActiveSupport::TestCase
         @token_response
       else
         @graphql_requests << headers
+        @graphql_bodies << body
         @graphql_response
       end
     end
@@ -50,14 +51,26 @@ class ShopifyClientTest < ActiveSupport::TestCase
   end
 
   test "sends the token header and maps products" do
-    nodes = [{ "id" => "gid://shopify/Product/1", "title" => "Air Fryer", "productType" => "Kitchen", "tags" => ["new"] },
-             { "id" => "gid://shopify/Product/2", "title" => "Mug", "productType" => nil, "tags" => [] }]
+    nodes = [{ "id" => "gid://shopify/Product/1", "title" => "Air Fryer", "productType" => "Kitchen", "tags" => ["new"], "status" => "ACTIVE" },
+             { "id" => "gid://shopify/Product/2", "title" => "Mug", "productType" => nil, "tags" => [], "status" => "ACTIVE" }]
     http = FakeHttp.new(graphql_response: ["200", { "data" => { "products" => { "nodes" => nodes } } }])
     products = client(http).products
 
     assert_equal "tok-1", http.graphql_requests.first["X-Shopify-Access-Token"]
     assert_equal({ id: "gid://shopify/Product/1", title: "Air Fryer", product_type: "Kitchen", tags: ["new"] }, products.first)
     assert_equal "", products.last[:product_type] # nil productType -> "" so the mapper falls back to title
+  end
+
+  # Fix 5: only active products, filtered in the query and again in code.
+  test "asks for active products only and drops drafts and archived ones" do
+    nodes = %w[ACTIVE DRAFT ARCHIVED].map.with_index do |status, i|
+      { "id" => "gid://shopify/Product/#{i}", "title" => status, "productType" => "", "tags" => [], "status" => status }
+    end
+    http = FakeHttp.new(graphql_response: ["200", { "data" => { "products" => { "nodes" => nodes } } }])
+    products = client(http).products
+
+    assert_includes http.graphql_bodies.first[:query], 'query: "status:active"'
+    assert_equal ["ACTIVE"], products.map { |p| p[:title] }
   end
 
   test "GraphQL errors raise" do

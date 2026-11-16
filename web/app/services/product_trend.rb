@@ -1,20 +1,61 @@
-# One table row: product -> mapping -> weekly views -> live label.
+# Builds the table rows: map every product, group products that map to the same
+# Wikipedia article (15 snowboards -> one row), then label each group once.
 # Errors are kept per row so one bad lookup doesn't break the page.
 class ProductTrend
-  Row = Struct.new(:product, :mapping, :result, :error, keyword_init: true)
+  # article: the article whose views were actually used (can differ from mapping.article in replays).
+  Row = Struct.new(:products, :mapping, :article, :result, :notes, :error, keyword_init: true)
 
-  def self.call(product, as_of:, wikipedia: WikipediaClient.new)
-    mapping = ProductMapper.new(wikipedia: wikipedia).call(product)
+  # Rows with model calls first, unmapped last.
+  LABEL_ORDER = ["Likely sustained", "Likely spike", "Surge detected – too early to tell",
+                 "Possible surge (unconfirmed)", "No surge detected", "Not enough data", "Not mapped"].freeze
+
+  def self.rows(products, as_of:, wikipedia: WikipediaClient.new)
+    new(wikipedia, as_of).rows(products)
+  end
+
+  def initialize(wikipedia, as_of)
+    @wikipedia = wikipedia
+    @as_of = as_of
+    @mapper = ProductMapper.new(wikipedia: wikipedia)
+  end
+
+  def rows(products)
+    mapped = products.map { |product| [product, @mapper.call(product)] }
+    groups = mapped.group_by { |_, m| m.article ? "article:#{m.article}" : "unmapped:#{m.term.to_s.downcase}" }
+    built = groups.values.map { |pairs| build_row(pairs.map(&:first), pairs.first.last) }
+    built.sort_by { |row| [LABEL_ORDER.index(row.result&.label) || LABEL_ORDER.size, -row.products.size] }
+  end
+
+  private
+
+  def build_row(products, mapping)
     if mapping.article.nil?
-      reason = "Wikipedia search found no article for \"#{mapping.term}\". Needs a mapping override (see ProductMapper TODO)."
-      return Row.new(product: product, mapping: mapping, result: LiveLabel::Result.new(label: "Not mapped", reason: reason))
+      return Row.new(products: products, mapping: mapping, notes: [],
+                     result: LiveLabel::Result.new(label: "Not mapped", reason: mapping.problem))
     end
 
-    weeks = wikipedia.weekly_views(mapping.article, through: LiveLabel.last_complete_week_end(as_of))
-    Row.new(product: product, mapping: mapping, result: LiveLabel.call(weeks, as_of: as_of))
+    article, notes = series_article(mapping)
+    weeks = @wikipedia.weekly_views(article, through: LiveLabel.last_complete_week_end(@as_of))
+    Row.new(products: products, mapping: mapping, article: article, notes: notes,
+            result: LiveLabel.call(weeks, as_of: @as_of))
   rescue WikipediaClient::MissingContact
-    raise # config problem: show it once at the top of the page, not per row
+    raise # config problem: shown once at the top of the page, not per row
   rescue WikipediaClient::Error, Net::OpenTimeout, Net::ReadTimeout, SocketError => e
-    Row.new(product: product, mapping: mapping, error: e.message)
+    Row.new(products: products, mapping: mapping, article: mapping.article, notes: [], error: e.message)
+  end
+
+  # Which article's views to use, plus any warnings for the row.
+  def series_article(mapping)
+    redirect = mapping.redirected_from
+    return [mapping.article, []] if redirect.nil?
+
+    cutoff = StandaloneHistory.valid_until(redirect)
+    if cutoff && @as_of <= cutoff
+      [redirect, ["Replay: \"#{redirect}\" was its own article until #{cutoff}, so its own views are used " \
+                  "(today it redirects to \"#{mapping.article}\")."]]
+    else
+      [mapping.article, ["\"#{redirect}\" redirects to \"#{mapping.article}\" on Wikipedia, so these views are " \
+                         "for the broader article, not the product itself."]]
+    end
   end
 end

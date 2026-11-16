@@ -8,7 +8,7 @@ class TrendsController < ApplicationController
     @replay = params[:as_of].present? && @as_of_error.nil?
     @source = ProductSource.call
     wikipedia = WikipediaClient.new
-    @rows = @source.products.map { |product| ProductTrend.call(product, as_of: @as_of, wikipedia: wikipedia) }
+    @rows = ProductTrend.rows(@source.products, as_of: @as_of, wikipedia: wikipedia)
   rescue WikipediaClient::MissingContact => e
     @fatal_error = e.message
     @rows = []

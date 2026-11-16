@@ -15,10 +15,11 @@ class ShopifyClient
   REFRESH_MARGIN = 5.minutes # refetch when the token has less than this left
   ENV_VARS = %w[SHOPIFY_SHOP_DOMAIN SHOPIFY_CLIENT_ID SHOPIFY_CLIENT_SECRET].freeze
 
+  # Only ACTIVE products: archived and draft ones aren't for sale.
   PRODUCTS_QUERY = <<~GRAPHQL.freeze
     query Products($first: Int!) {
-      products(first: $first, sortKey: TITLE) {
-        nodes { id title productType tags }
+      products(first: $first, sortKey: TITLE, query: "status:active") {
+        nodes { id title productType tags status }
       }
     }
   GRAPHQL
@@ -48,7 +49,8 @@ class ShopifyClient
     raise Error, "Shopify GraphQL returned HTTP #{status}" unless status == "200"
     raise Error, "Shopify GraphQL error: #{body['errors'].map { |e| e['message'] }.join('; ')}" if body["errors"]
 
-    body.dig("data", "products", "nodes").map do |node|
+    nodes = body.dig("data", "products", "nodes")
+    nodes.select { |node| node["status"] == "ACTIVE" }.map do |node| # belt and braces on top of the query filter
       { id: node["id"], title: node["title"], product_type: node["productType"].to_s, tags: node["tags"] }
     end
   end

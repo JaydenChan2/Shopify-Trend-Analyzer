@@ -17,3 +17,8 @@ th { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.03em; color
 .label-surge-detected-too-early-to-tell, .label-possible-surge-unconfirmed { background: #fff1c2; color: #6b5200; }
 .label-error { background: #fde8e8; color: #8a1111; }
 footer { margin-top: 2rem; font-size: 0.85em; color: #6b6b6b; }
+.label-not-enough-data, .label-not-mapped { background: #f0f0f0; color: #666; }
+.note { margin-top: 0.35rem; font-size: 0.85em; color: #8a5a00; }
+.count { color: #6b6b6b; font-size: 0.85em; }
+details summary { cursor: pointer; }
+details ul { margin: 0.3rem 0 0 1rem; padding: 0; font-size: 0.9em; }

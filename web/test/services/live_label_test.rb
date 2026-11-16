@@ -22,9 +22,35 @@ class LiveLabelTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 11, 8), LiveLabel.last_complete_week_end(monday)
   end
 
-  test "no surge when flat" do
-    values = BASE
+  test "no surge when flat above the floor" do
+    values = [3000] * 40
     assert_equal "No surge detected", LiveLabel.call(weeks(values), as_of: as_of_after(values.size)).label
+  end
+
+  # Fixes 4 and 6: every no-data case gets "Not enough data" with its own reason.
+  test "not enough data when traffic is below the floor" do
+    values = BASE # 1,000/week < 2,000 floor
+    result = LiveLabel.call(weeks(values), as_of: as_of_after(values.size))
+    assert_equal "Not enough data", result.label
+    assert_match "~1,000 views/week", result.reason
+  end
+
+  test "not enough data when there are no views at all" do
+    result = LiveLabel.call(weeks([0] * 40), as_of: as_of_after(40))
+    assert_equal "Not enough data", result.label
+    assert_match "No Wikipedia views", result.reason
+  end
+
+  test "not enough data when the article didn't exist yet at as_of" do
+    values = [0] * 40 + [50_000] * 20 # created after week 40
+    result = LiveLabel.call(weeks(values), as_of: as_of_after(30))
+    assert_equal "Not enough data", result.label
+    assert_match "may not have existed yet", result.reason
+  end
+
+  test "a surge that has faded below the floor is still scored, not 'not enough data'" do
+    values = BASE + [5000, 6000, 3000, 1500, 1200, 1000, 900]
+    assert_includes ["Likely sustained", "Likely spike"], LiveLabel.call(weeks(values), as_of: as_of_after(values.size)).label
   end
 
   test "possible surge when only the latest week is above the bar" do

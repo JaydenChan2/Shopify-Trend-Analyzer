@@ -4,6 +4,7 @@
 #   "Surge detected – too early to tell"  onset confirmed but weeks 0-5 aren't all complete
 #   "Likely sustained" / "Likely spike"   onset 6-10 weeks ago: scored by the model
 #   "No surge detected"                   no onset started in the last 10 weeks
+#   "Not enough data"                     no views, or traffic below the floor (and no recent surge)
 #
 # Zero lookahead: everything after the last complete week before `as_of` is
 # dropped before any logic runs (see test/services/live_label_test.rb).
@@ -34,10 +35,12 @@ class LiveLabel
   end
 
   def result
-    return no_surge("No Wikipedia views found for this article.") if @first_week.nil?
+    if @first_week.nil?
+      return not_enough_data("No Wikipedia views up to this date (the article may not have existed yet, or had a different title).")
+    end
 
     onset, confirmed = find_recent_onset
-    return no_surge(steady_reason) if onset.nil?
+    return quiet_result if onset.nil?
     return possible_surge(onset) unless confirmed
 
     weeks_since = @values.length - onset
@@ -91,6 +94,24 @@ class LiveLabel
     Result.new(label: "No surge detected", reason: reason)
   end
 
+  def not_enough_data(reason)
+    Result.new(label: "Not enough data", reason: reason)
+  end
+
+  # No onset in the window: still elevated from an older surge, too little traffic, or steady.
+  def quiet_result
+    recent = TrendMath.mean(@values.last(4))
+    floor = TrendMath.rules["min_weekly_views"]
+    if surging?(@values.length - 1)
+      no_surge("Elevated for over #{LIVE_WINDOW_WEEKS} weeks (an older surge, outside the window).")
+    elsif recent < floor
+      not_enough_data("Only ~#{fmt_views(recent)} views/week recently; a surge needs at least " \
+                      "#{fmt_views(floor)}/week to be detected.")
+    else
+      no_surge("Steady around #{fmt_views(recent)} views/week; no 3x jump in the last #{LIVE_WINDOW_WEEKS} weeks.")
+    end
+  end
+
   # ---------- reasons ----------
 
   def scored_reason(onset, f)
@@ -120,18 +141,6 @@ class LiveLabel
       accel > 0.1 ? "fading, but the drop is easing" : "fading from its early peak"
     else
       "holding steady"
-    end
-  end
-
-  def steady_reason
-    recent = TrendMath.mean(@values.last(4))
-    floor = TrendMath.rules["min_weekly_views"]
-    if surging?(@values.length - 1)
-      "Elevated for over #{LIVE_WINDOW_WEEKS} weeks (an older surge, outside the window)."
-    elsif recent < floor
-      "Low traffic: ~#{fmt_views(recent)} views/week, below the #{fmt_views(floor)}/week floor."
-    else
-      "Steady around #{fmt_views(recent)} views/week; no 3x jump in the last #{LIVE_WINDOW_WEEKS} weeks."
     end
   end
 

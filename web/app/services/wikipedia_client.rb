@@ -11,13 +11,16 @@ class WikipediaClient
   DATA_START = Date.new(2015, 7, 1)
   FIRST_MONDAY = Date.new(2015, 7, 6) # backtest drops the partial first week too
 
-  # Top Wikipedia article for a search term, or nil.
-  def search_title(term)
-    Rails.cache.fetch(["wiki-search-v1", term.downcase], expires_in: 7.days) do
+  # Top Wikipedia article for a search term: { title:, redirect_from: } or nil.
+  # redirect_from is set when the match came through a redirect, e.g. searching
+  # "Air fryer" returns { title: "Convection oven", redirect_from: "Air fryer" }.
+  def search(term)
+    Rails.cache.fetch(["wiki-search-v2", term.downcase], expires_in: 7.days) do
       uri = URI(SEARCH_API)
-      uri.query = URI.encode_www_form(action: "query", list: "search", srsearch: term,
-                                      srlimit: 1, srnamespace: 0, format: "json")
-      JSON.parse(get(uri).body).dig("query", "search", 0, "title")
+      uri.query = URI.encode_www_form(action: "query", list: "search", srsearch: term, srlimit: 1,
+                                      srnamespace: 0, srprop: "redirecttitle", format: "json")
+      hit = JSON.parse(get(uri).body).dig("query", "search", 0)
+      hit && { title: hit["title"], redirect_from: hit["redirecttitle"].presence }
     end
   end
 
