@@ -6,9 +6,9 @@ class TrendsController < ApplicationController
   def index
     @as_of, @as_of_error = parse_as_of(params[:as_of])
     @replay = params[:as_of].present? && @as_of_error.nil?
-    @products, @mode = ProductSource.call
+    @source = ProductSource.call
     wikipedia = WikipediaClient.new
-    @rows = @products.map { |product| ProductTrend.call(product, as_of: @as_of, wikipedia: wikipedia) }
+    @rows = @source.products.map { |product| ProductTrend.call(product, as_of: @as_of, wikipedia: wikipedia) }
   rescue WikipediaClient::MissingContact => e
     @fatal_error = e.message
     @rows = []

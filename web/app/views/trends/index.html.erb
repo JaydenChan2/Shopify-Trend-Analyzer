@@ -10,8 +10,12 @@
     </div>
   <% end %>
   <% if @as_of_error %><div class="banner warning"><%= @as_of_error %></div><% end %>
-  <% if @mode == :demo %>
+  <% if @source&.mode == :demo %>
     <div class="banner info">Demo mode: showing sample products (Shopify credentials not set).</div>
+  <% elsif @source&.error %>
+    <div class="banner error">Couldn't load products from <%= @source.shop %>: <%= @source.error %></div>
+  <% elsif @source %>
+    <div class="banner info">Connected to <strong><%= @source.shop %></strong>: <%= pluralize(@source.products.size, "product") %>.</div>
   <% end %>
   <% if @fatal_error %><div class="banner error"><%= @fatal_error %></div><% end %>
 </header>
