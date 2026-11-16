@@ -24,7 +24,13 @@ ENV RAILS_ENV="production" \
 # ---- Build stage: gems and precompiled assets ----
 FROM base AS build
 
-# The lockfile has prebuilt Linux gems (sqlite3 etc.), so no compiler is needed.
+# Puma, nio4r, json, bigdecimal and a few others compile C extensions during
+# bundle install. The compiler lives in this stage only; the final image just
+# copies the built gems.
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential pkg-config libyaml-dev && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
 COPY web/Gemfile web/Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache
