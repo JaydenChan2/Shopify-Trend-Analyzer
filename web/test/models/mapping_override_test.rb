@@ -12,10 +12,10 @@ class MappingOverrideTest < ActiveSupport::TestCase
     MappingOverride.create!(term_key: "jellycat bashful bunny", ignored: true)
     2.times { load Rails.root.join("db/seeds.rb") }
 
-    assert_equal "Owala", MappingOverride.for_term("Owala FreeSip Water Bottle").article
+    assert_equal "Crocs", MappingOverride.for_term("Crocs Jibbitz Charm Pack").article
     assert MappingOverride.for_term("giftcard").ignored?
     assert MappingOverride.for_term("jellycat bashful bunny").ignored?, "existing override was overwritten"
-    assert_equal 8, MappingOverride.count
+    assert_equal 7, MappingOverride.count
   end
 
   test "article is required unless the term is ignored" do

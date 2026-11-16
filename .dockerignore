@@ -1,11 +1,12 @@
-# Only web/ and two backtest files go into the image (see Dockerfile).
+# Only web/ and three backtest files go into the image (see Dockerfile).
 .git
 .env
 .env.*
 .venv
 docs
 backtest/cache
-backtest/results
+backtest/results/*
+!backtest/results/step_d_predictions.csv
 backtest/tests
 **/__pycache__
 **/.pytest_cache

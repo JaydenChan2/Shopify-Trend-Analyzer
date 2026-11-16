@@ -30,3 +30,19 @@ class FakeWikipedia
     mondays.zip(padded)
   end
 end
+
+# Like FakeWikipedia, but each custom series is a block of the week's Monday, so
+# the same calendar week has the same views however far `through` reaches
+# (hindsight fetches past a replay's as_of). Other articles stay flat at 3,000.
+class DatedFakeWikipedia < FakeWikipedia
+  def initialize(dated: {}, **options)
+    super(**options)
+    @dated = dated
+  end
+
+  def weekly_views(article, through:)
+    rule = @dated[article] or return super
+    @series_requests << article
+    (WikipediaClient::FIRST_MONDAY..through).step(7).select { |m| m + 6 <= through }.map { |m| [m, rule.call(m)] }
+  end
+end

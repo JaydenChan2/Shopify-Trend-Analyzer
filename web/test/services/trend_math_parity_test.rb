@@ -25,6 +25,20 @@ class TrendMathParityTest < ActiveSupport::TestCase
       end
       assert_in_delta c["probability"], TrendModel.instance.probability(ruby_features), TOLERANCE, "probability"
     end
+
+    # The hindsight check's outcome label must match Python's label_from_onset.
+    test "parity: outcome label: #{c['name']}" do
+      onset, = TrendMath.detect_onset(c["values"])
+      ruby = onset && Hindsight.label(c["values"], onset)
+      if c["label"].nil?
+        assert_nil ruby
+      else
+        label, peak, late_mean = ruby
+        assert_equal c["label"], label
+        assert_in_delta c["peak"], peak, TOLERANCE, "peak"
+        assert_in_delta c["late_mean"], late_mean, TOLERANCE, "late mean"
+      end
+    end
   end
 
   # Minitest refuses assert_equal(nil, x); use assert_nil for the no-onset cases.

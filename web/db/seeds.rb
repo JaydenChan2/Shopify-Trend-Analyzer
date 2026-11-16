@@ -15,8 +15,8 @@ default_overrides = {
   "pokemon tcg booster box"      => "Pokémon Trading Card Game",
   "ninja creami ice cream maker" => "SharkNinja",                # no Creami article; brand-level interest
   "the minimal snowboard"        => "Snowboard",                 # group with the other sample snowboards
-  # Auto-search picked the parent company; Owala has its own article.
-  "owala freesip water bottle"   => "Owala",
+  # (No Owala override: Wikipedia's "Owala" is a river in Nigeria. Auto-search
+  # correctly picks Trove Brands, the company that makes Owala bottles.)
   # Not trend products.
   "giftcard"                     => nil,
   "accessories"                  => nil                          # Shopify's sample ski wax

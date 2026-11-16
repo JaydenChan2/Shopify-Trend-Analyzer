@@ -1,0 +1,18 @@
+<%# Did this replayed call come true? Local: hindsight (Hindsight::Result). See app/services/hindsight.rb. %>
+<div class="hindsight">
+  <% case hindsight.status %>
+  <% when :checked %>
+    <% tone, headline = hindsight_headline(hindsight) %>
+    <p class="hindsight-head tone-<%= tone %>"><span class="hindsight-tag">Hindsight</span> <%= headline %></p>
+    <p class="hindsight-detail"><%= hindsight_detail(hindsight) %></p>
+  <% when :pending %>
+    <p class="hindsight-head tone-neutral"><span class="hindsight-tag">Hindsight</span> Too recent to check</p>
+    <p class="hindsight-detail">Needs a full year after the jump; checkable from <%= hindsight.ready_on.strftime("%B %-d, %Y") %>.</p>
+  <% when :unavailable %>
+    <p class="hindsight-head tone-neutral"><span class="hindsight-tag">Hindsight</span> Can't check</p>
+    <p class="hindsight-detail">The article was merged into another before a full year had passed.</p>
+  <% end %>
+  <% if hindsight.in_training %>
+    <p class="hindsight-detail hindsight-warn">The model was trained on this trend, so this isn't a fair test.</p>
+  <% end %>
+</div>

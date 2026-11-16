@@ -1,7 +1,8 @@
 """Write parity_fixture.json: inputs + Python's outputs for the Ruby parity test.
 
 Each case is a full weekly series. Python computes onset (index + rule),
-features and P(sustained) using model.json; the Rails test runs the same series
+features, P(sustained) using model.json, and the outcome label (the app's
+hindsight check uses the same rule); the Rails test runs the same series
 through the Ruby port and must match to 1e-9.
 
 Usage: python export_fixture.py
@@ -42,7 +43,12 @@ def score(features):
 def case(name, values):
     values = [int(v) for v in values]
     onset, rule = series.detect_onset(series_from(values))
-    out = {"name": name, "values": values, "onset": onset, "rule": rule, "features": None, "probability": None}
+    out = {"name": name, "values": values, "onset": onset, "rule": rule, "features": None, "probability": None,
+           "label": None, "peak": None, "late_mean": None}
+    if onset is not None:
+        label, peak, late_mean = series.label_from_onset(series_from(values), onset)
+        if label is not None:
+            out.update(label=label, peak=float(peak), late_mean=float(late_mean))
     if onset is not None and onset + EARLY_WEEKS <= len(values):
         feats = compute_features(np.array(values, dtype=float), onset)
         out["features"] = feats
@@ -71,7 +77,7 @@ def main():
     cases += [case(name, values) for name, values in SYNTHETIC.items()]
     (HERE / "parity_fixture.json").write_text(json.dumps({"tolerance": 1e-9, "cases": cases}, indent=1) + "\n")
     for c in cases:
-        print(f"{c['name']:<26} onset={c['onset']} rule={c['rule']} p={c['probability']}")
+        print(f"{c['name']:<26} onset={c['onset']} rule={c['rule']} p={c['probability']} label={c['label']}")
 
 
 if __name__ == "__main__":

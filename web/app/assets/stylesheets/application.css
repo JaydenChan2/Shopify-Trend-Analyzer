@@ -386,6 +386,16 @@ code { font-size: 0.9em; background: var(--bg-soft); border: 1px solid var(--bor
 .meta { margin: 0; color: var(--subtle); font-size: 13px; }
 .note { margin: 0; font-size: 13px; color: var(--note-text); background: var(--note-bg); border: 1px solid var(--note-border); border-radius: 12px; padding: 8px 12px; }
 
+/* hindsight: did a replayed call come true? (dashed = "from the future", not part of the call) */
+.hindsight { display: grid; gap: 3px; padding: 10px 12px; border: 1px dashed var(--border-strong); border-radius: 12px; }
+.hindsight p { margin: 0; }
+.hindsight-head { font-size: 14px; font-weight: 700; color: var(--tone); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hindsight-head.tone-neutral { color: var(--ink); }
+.hindsight-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
+.hindsight-detail { font-size: 13px; color: var(--muted); }
+.hindsight-warn { color: var(--note-text); }
+.banner.hindsight-banner { border-left-color: var(--ink); border-left-style: dashed; }
+
 .spark-wrap { position: relative; margin: 2px 0 0; padding-top: 16px; }
 .sparkline { display: block; width: 100%; height: 44px; color: var(--tone); overflow: visible; }
 .spark-line { fill: none; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }

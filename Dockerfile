@@ -1,5 +1,5 @@
 # Production image for the Rails app in web/. Built from the repo root because the app
-# reads ../backtest/model.json and ../backtest/trends.csv at runtime.
+# reads ../backtest/model.json, trends.csv and results/step_d_predictions.csv at runtime.
 #
 #   docker build -t spike-or-stay .
 #   docker run -p 3000:3000 -e SECRET_KEY_BASE=$(openssl rand -hex 64) -e WIKI_CONTACT=you@example.com spike-or-stay
@@ -37,6 +37,7 @@ RUN bundle install && \
 
 COPY web/ ./
 COPY backtest/model.json backtest/trends.csv /rails/backtest/
+COPY backtest/results/step_d_predictions.csv /rails/backtest/results/
 
 # Assets are compiled without the real secret.
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile

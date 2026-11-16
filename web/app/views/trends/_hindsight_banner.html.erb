@@ -1,0 +1,15 @@
+<%# Replay scoreboard: how many of this replay's calls came true. Local: rows. %>
+<% tally = hindsight_tally(rows) %>
+<% if tally[:checked].positive? %>
+  <div class="banner hindsight-banner">
+    <strong>Hindsight: <%= tally[:came_true] %> of <%= tally[:checked] %> <%= "call".pluralize(tally[:checked]) %> came true.</strong>
+    <% if tally[:fair_checked] < tally[:checked] %>
+      <% if tally[:fair_checked].zero? %>
+        All of them were in the model's training data, so this shows the pipeline working, not accuracy.
+      <% else %>
+        Leaving out trends the model was trained on: <%= tally[:fair_came_true] %> of <%= tally[:fair_checked] %>.
+      <% end %>
+    <% end %>
+    Checked with the backtest's own rule on the year after each jump, data the call never saw.
+  </div>
+<% end %>

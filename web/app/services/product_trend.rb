@@ -7,7 +7,8 @@ class ProductTrend
   #           overridden "The Minimal Snowboard", so each gets its own fix/remove form
   # article:  the article whose views were actually used (can differ from mapping.article in replays)
   # recent:   the last 26 complete weekly view counts, for the card's sparkline
-  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent,
+  # hindsight: for replays, whether the call came true (Hindsight::Result), or nil
+  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent, :hindsight,
                    keyword_init: true) do
     def initialize(**fields)
       super
@@ -22,6 +23,15 @@ class ProductTrend
 
   def self.rows(products, as_of:, wikipedia: WikipediaClient.new)
     new(wikipedia, as_of).rows(products)
+  end
+
+  # The checks every tracked article gets, whether it came from the store or from
+  # Discover: the live label as of `as_of`, the sparkline, and the hindsight check.
+  def self.labelled_row(wikipedia, article, as_of, **fields)
+    weeks = wikipedia.weekly_views(article, through: LiveLabel.last_complete_week_end(as_of))
+    result = LiveLabel.call(weeks, as_of: as_of)
+    Row.new(article: article, result: result, recent: weeks.last(26).map(&:last),
+            hindsight: Hindsight.call(article: article, result: result, wikipedia: wikipedia), **fields)
   end
 
   def initialize(wikipedia, as_of)
@@ -51,9 +61,7 @@ class ProductTrend
     end
 
     article, notes = series_article(mapping)
-    weeks = @wikipedia.weekly_views(article, through: LiveLabel.last_complete_week_end(@as_of))
-    Row.new(products: products, mapping: mapping, article: article, notes: notes,
-            result: LiveLabel.call(weeks, as_of: @as_of), recent: weeks.last(26).map(&:last))
+    self.class.labelled_row(@wikipedia, article, @as_of, products: products, mapping: mapping, notes: notes)
   rescue WikipediaClient::MissingContact
     raise # config problem: shown once at the top of the page, not per row
   rescue WikipediaClient::Error, Net::OpenTimeout, Net::ReadTimeout, SocketError => e

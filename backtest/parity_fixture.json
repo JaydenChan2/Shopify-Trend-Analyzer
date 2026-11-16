@@ -606,7 +606,10 @@
     "volatility": 0.42814216555023754,
     "yoy_ratio": null
    },
-   "probability": 0.2686365957757075
+   "probability": 0.2686365957757075,
+   "label": "spike",
+   "peak": 1352226.0,
+   "late_mean": 40070.38461538462
   },
   {
    "name": "Hatchimals",
@@ -1213,7 +1216,10 @@
     "volatility": 0.6415512544299925,
     "yoy_ratio": null
    },
-   "probability": 0.1981445642412603
+   "probability": 0.1981445642412603,
+   "label": "spike",
+   "peak": 9616.0,
+   "late_mean": 1992.3461538461538
   },
   {
    "name": "Scrunchie",
@@ -1820,7 +1826,10 @@
     "volatility": 0.5603117623683875,
     "yoy_ratio": 7.273359231241056
    },
-   "probability": 0.005534069031427425
+   "probability": 0.005534069031427425,
+   "label": "spike",
+   "peak": 20063.0,
+   "late_mean": 4577.692307692308
   },
   {
    "name": "Labubu",
@@ -2427,7 +2436,10 @@
     "volatility": 0.15837688616936482,
     "yoy_ratio": null
    },
-   "probability": 0.8550932432399221
+   "probability": 0.8550932432399221,
+   "label": "sustained",
+   "peak": 41380.0,
+   "late_mean": 169101.6923076923
   },
   {
    "name": "Air fryer",
@@ -2850,7 +2862,10 @@
     "volatility": 0.32133034841075797,
     "yoy_ratio": 3.7799243610435287
    },
-   "probability": 0.6723064151689413
+   "probability": 0.6723064151689413,
+   "label": "sustained",
+   "peak": 38189.0,
+   "late_mean": 15098.961538461539
   },
   {
    "name": "Stanley tumbler",
@@ -3457,7 +3472,10 @@
     "volatility": 0.2601038174253224,
     "yoy_ratio": 4.32955206515416
    },
-   "probability": 0.6609157345255452
+   "probability": 0.6609157345255452,
+   "label": "spike",
+   "peak": 44786.0,
+   "late_mean": 3882.230769230769
   },
   {
    "name": "Liquid Death",
@@ -4064,7 +4082,10 @@
     "volatility": 0.2869811705230939,
     "yoy_ratio": null
    },
-   "probability": 0.7847104709711384
+   "probability": 0.7847104709711384,
+   "label": "sustained",
+   "peak": 3790.0,
+   "late_mean": 5058.884615384615
   },
   {
    "name": "Pickleball",
@@ -4665,7 +4686,10 @@
    "onset": null,
    "rule": null,
    "features": null,
-   "probability": null
+   "probability": null,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "Slime (toy)",
@@ -5266,7 +5290,10 @@
    "onset": null,
    "rule": null,
    "features": null,
-   "probability": null
+   "probability": null,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "one_week_blip",
@@ -5314,7 +5341,10 @@
    "onset": null,
    "rule": null,
    "features": null,
-   "probability": null
+   "probability": null,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "two_week_surge",
@@ -5363,7 +5393,10 @@
     "volatility": 0.18410807698788542,
     "yoy_ratio": null
    },
-   "probability": 0.8584705473917966
+   "probability": 0.8584705473917966,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "created_mid_trend",
@@ -5416,7 +5449,10 @@
     "volatility": 0.266394286989467,
     "yoy_ratio": null
    },
-   "probability": 0.7499010335600521
+   "probability": 0.7499010335600521,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "fallback_needs_two_weeks",
@@ -5471,7 +5507,10 @@
     "volatility": 0.03988131761108296,
     "yoy_ratio": null
    },
-   "probability": 0.9496171767571642
+   "probability": 0.9496171767571642,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "below_floor",
@@ -5512,7 +5551,10 @@
    "onset": null,
    "rule": null,
    "features": null,
-   "probability": null
+   "probability": null,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "evergreen_no_onset",
@@ -5581,7 +5623,10 @@
    "onset": null,
    "rule": null,
    "features": null,
-   "probability": null
+   "probability": null,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   },
   {
    "name": "onset_without_six_weeks",
@@ -5619,7 +5664,10 @@
    "onset": 26,
    "rule": "ratio",
    "features": null,
-   "probability": null
+   "probability": null,
+   "label": null,
+   "peak": null,
+   "late_mean": null
   }
  ]
 }

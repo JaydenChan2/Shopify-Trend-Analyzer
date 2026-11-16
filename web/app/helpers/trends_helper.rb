@@ -65,6 +65,34 @@ module TrendsHelper
     end.to_h
   end
 
+  # ---------- Hindsight (replays only) ----------
+
+  # [tone, headline] for a checked hindsight result, e.g. ["success", "Came true"].
+  def hindsight_headline(hindsight)
+    lasted = hindsight.outcome == "sustained" ? "it lasted" : "it faded"
+    case hindsight.came_true
+    when true then ["success", "Came true: #{lasted}"]
+    when false then ["critical", "Missed: #{lasted}"]
+    else ["neutral", "What happened: #{lasted}"]
+    end
+  end
+
+  # "Months 6–12 ... averaged 41% of the peak week in months 0–6 (25% or more counts as lasting)."
+  # (Weeks 26–51 vs 0–25, phrased in months for merchants.)
+  def hindsight_detail(hindsight)
+    "Months 6–12 after the jump averaged #{percent(hindsight.ratio)} of the peak week in months 0–6 " \
+      "(#{percent(Hindsight::SUSTAIN_RATIO)} or more counts as lasting)."
+  end
+
+  # Banner tally for a replay: { checked:, came_true:, fair_checked:, fair_came_true: }
+  # "fair" leaves out trends the model was trained on.
+  def hindsight_tally(rows)
+    calls = rows.map(&:hindsight).compact.select { |h| h.status == :checked && !h.came_true.nil? }
+    fair = calls.reject(&:in_training)
+    { checked: calls.size, came_true: calls.count(&:came_true),
+      fair_checked: fair.size, fair_came_true: fair.count(&:came_true) }
+  end
+
   # Tiny inline SVG of recent weekly views for a card.
   def sparkline(values, width: 240, height: 44)
     return "" if values.blank? || values.max.to_i.zero? || values.size < 2

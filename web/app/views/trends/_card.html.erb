@@ -1,0 +1,66 @@
+<%# One tracked article: label, sparkline, reason, hindsight, and (for store products) the mapping.
+    Locals: row (ProductTrend::Row), show_mapping (false on Discover, where there's no store mapping). %>
+<% show_mapping = local_assigns.fetch(:show_mapping, true) %>
+<% label = row_label(row) %>
+<% chartable = row.article && !row.error && row.recent.present? %>
+<article class="product-card tone-<%= label_tone(label) %><%= ' is-clickable' if chartable %>" data-group="<%= label_group(label) %>">
+  <div class="card-top">
+    <span class="label tone-<%= label_tone(label) %>"><span class="label-dot"></span><%= label_text(row) %></span>
+    <% if row.products.size > 1 %><span class="pill"><%= row.products.size %> products</span><% end %>
+  </div>
+
+  <h3 class="product-title"><%= row.products.first[:title] %></h3>
+  <% if row.products.size > 1 %>
+    <details class="group">
+      <summary>+<%= row.products.size - 1 %> more</summary>
+      <ul><% row.products.drop(1).each do |product| %><li><%= product[:title] %></li><% end %></ul>
+    </details>
+  <% end %>
+
+  <% if chartable %><div class="spark-wrap"><%= sparkline(row.recent) %><span class="spark-caption">26 weeks</span></div><% end %>
+
+  <% if row.error %>
+    <p class="reason"><%= row.error %></p>
+  <% else %>
+    <p class="reason"><%= row.result.reason %></p>
+    <% if row.result.onset_week %><p class="meta">Interest jumped the week of <%= row.result.onset_week %>.</p><% end %>
+  <% end %>
+  <% row.notes.to_a.each do |note| %><p class="note"><%= note %></p><% end %>
+  <% if @replay && row.hindsight %><%= render "trends/hindsight", hindsight: row.hindsight %><% end %>
+
+  <% if show_mapping %>
+  <dl class="mapping">
+    <div>
+      <dt>Searched for</dt>
+      <dd class="terms">
+        <% row.mappings.each do |mapping| %>
+          <span class="term"><%= mapping.term %> <span class="muted">(<%= mapping.source %><%= ", override" if mapping.override_id %>)</span></span>
+        <% end %>
+      </dd>
+    </div>
+    <div>
+      <dt>Wikipedia page</dt>
+      <dd class="article"><%= row.article || "—" %></dd>
+    </div>
+  </dl>
+  <% else %>
+  <dl class="mapping">
+    <div>
+      <dt>Wikipedia page</dt>
+      <dd class="article"><%= link_to row.article, "https://en.wikipedia.org/wiki/#{ERB::Util.url_encode(row.article.tr(' ', '_'))}", rel: "noopener", target: "_blank" %></dd>
+    </div>
+  </dl>
+  <% end %>
+
+  <div class="card-actions">
+    <% if chartable %>
+      <%= link_to "View trend ›", trend_path(article: row.article, product: row.products.first[:title], as_of: (@replay ? params[:as_of] : nil)),
+                  class: "card-open", data: { trend: true } %>
+    <% end %>
+    <% if show_mapping %>
+      <% row.mappings.each do |mapping| %>
+        <%= render "trends/fix_mapping", mapping: mapping, show_term: row.mappings.size > 1 %>
+      <% end %>
+    <% end %>
+  </div>
+</article>

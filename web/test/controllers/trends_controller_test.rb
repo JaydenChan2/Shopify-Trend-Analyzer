@@ -95,4 +95,36 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".banner.info", /Replay as of June 12, 2017/
     assert_select "details.fix input[name=as_of][value=?]", "2017-06-12"
   end
+
+  # ---------- Hindsight on replays ----------
+  # Pop Mart: 1,000/week, then a jump on 2020-01-06 that settles at 6,000/week (lasted).
+  POP_MART_ONSET = Date.new(2020, 1, 6)
+
+  def with_pop_mart_surge
+    TrendsController.wikipedia_client = DatedFakeWikipedia.new(dated: {
+      "Pop Mart" => ->(monday) {
+        weeks_in = ((monday - POP_MART_ONSET) / 7).to_i
+        weeks_in.negative? ? 1000 : [20_000, 15_000, 12_000, 10_000, 9000, 8000].fetch(weeks_in, 6000)
+      }
+    })
+    MappingOverride.create!(term_key: "matcha", article: "Pop Mart")
+  end
+
+  test "a replay shows whether each call came true, with a tally" do
+    with_pop_mart_surge
+    get dashboard_path(as_of: (POP_MART_ONSET + 8 * 7).iso8601)
+    card = css_select(".product-card").find { |c| c.text.include?("Matcha") }
+    assert_match(/Likely (sustained|spike)/, card.css(".label").text)
+    assert_match(/Came true: it lasted|Missed: it lasted/, card.css(".hindsight-head").text)
+    assert_match "averaged", card.css(".hindsight-detail").text
+    assert_select ".banner.hindsight-banner", /of 1 call came true/
+    assert_empty card.css(".hindsight-warn"), "Pop Mart wasn't in the training data"
+  end
+
+  test "today's view never shows hindsight" do
+    with_pop_mart_surge
+    get dashboard_path
+    assert_select ".hindsight", count: 0
+    assert_select ".hindsight-banner", count: 0
+  end
 end
