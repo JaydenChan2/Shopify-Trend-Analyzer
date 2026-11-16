@@ -13,6 +13,7 @@ import wiki
 ONSET_MULTIPLIER = 3.0    # onset week must exceed this x the baseline median...
 BASELINE_WEEKS = 26       # ...of this many previous weeks
 MIN_WEEKLY_VIEWS = 2000   # ...and clear this absolute floor
+ONSET_CONFIRM_WEEKS = 2   # ...for this many consecutive weeks (amendment 1, see PREREGISTRATION.md)
 LABEL_PEAK_WEEKS = 26     # peak taken over weeks 0..25 after onset
 LABEL_LATE_END = 52       # late mean over weeks 26..51 after onset
 SUSTAIN_RATIO = 0.25      # sustained if late mean >= this x peak
@@ -43,12 +44,16 @@ def weekly_series(trend):
     return daily.resample("W-SUN").sum()  # index = week-ending Sunday
 
 
-def detect_onset(weekly, multiplier=ONSET_MULTIPLIER):
+def detect_onset(weekly, multiplier=ONSET_MULTIPLIER, confirm_weeks=ONSET_CONFIRM_WEEKS):
     """Return (onset_index, rule) or (None, None).
 
-    rule is "ratio" (beat multiplier x median of previous 26 weeks) or
-    "fallback" (article created after data start; first week >= floor during
-    its first 26 weeks of existence).
+    rule is "ratio" (beat multiplier x median of the 26 weeks before the onset
+    week) or "fallback" (article created after data start; first week >= floor
+    during its first 26 weeks of existence).
+
+    The condition must hold for `confirm_weeks` consecutive weeks starting at the
+    onset week, all compared against the SAME baseline (the one before week t),
+    so a one-week blip from a Main Page feature or news hit isn't an onset.
     """
     values = weekly.to_numpy()
     nonzero = np.flatnonzero(values > 0)
@@ -57,14 +62,15 @@ def detect_onset(weekly, multiplier=ONSET_MULTIPLIER):
     first_week = nonzero[0]
     created_after_start = first_week > 0
 
-    for t in range(len(values)):
+    for t in range(len(values) - confirm_weeks + 1):
+        window = values[t:t + confirm_weeks]
         weeks_of_history = t - first_week
         if weeks_of_history >= BASELINE_WEEKS:
             baseline = np.median(values[t - BASELINE_WEEKS:t])
-            if values[t] > multiplier * baseline and values[t] >= MIN_WEEKLY_VIEWS:
+            if all(window > multiplier * baseline) and all(window >= MIN_WEEKLY_VIEWS):
                 return t, "ratio"
         elif created_after_start and weeks_of_history >= 0:
-            if values[t] >= MIN_WEEKLY_VIEWS:
+            if all(window >= MIN_WEEKLY_VIEWS):
                 return t, "fallback"
     return None, None
 

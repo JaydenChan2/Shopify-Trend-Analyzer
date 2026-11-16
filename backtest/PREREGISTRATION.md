@@ -48,3 +48,28 @@ Metrics: accuracy, per-class precision/recall, confusion matrix, per-trend predi
 
 If the logistic regression does not beat both baselines in (a), the README says so plainly.
 `model.json` is exported from the model fit on all rows of (a).
+
+---
+
+## Amendment 1: two-week onset confirmation (added AFTER seeing Step B)
+
+**Status:** made after Step B onsets and labels were inspected, before any
+feature or model result existed. Not part of the original pre-registration.
+
+**What we saw:** in 7 of 23 onsets a single day carried 31–93% of the onset
+week's views and the next week fell back (Liquid Death, Pickleball, Rolled ice
+cream, Slime, Scrunchie, Impossible Foods, CBD). Those onsets reflect a Main Page
+feature or news hit, not the start of a trend, so their labels measured the size
+of the blip.
+
+**Reasoning (recorded by the project owner before the rerun):** single-day
+attention from Main Page features or news hits isn't a trend start, and requiring
+the surge to hold a second week filters that out without lookahead past the
+feature window.
+
+**Change:** `ONSET_CONFIRM_WEEKS = 2`. The onset condition (ratio rule or
+fallback) must hold in weeks t and t+1, both compared against the baseline before
+week t. Onset is week t. The live app uses the same rule.
+
+**Reporting:** Step D reports a fourth line, **(d)**, the original 1-week rule
+on all rows, so the effect of this amendment is visible.
