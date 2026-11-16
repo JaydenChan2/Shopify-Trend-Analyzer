@@ -3,3 +3,11 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 .env
+
+# Rails app (web/)
+web/log/*
+web/tmp/*
+web/storage/*
+web/db/*.sqlite3*
+web/config/master.key
+web/.env*

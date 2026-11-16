@@ -1,0 +1,69 @@
+<header>
+  <h1>Spike or Stay</h1>
+  <p class="subtitle">Given an abrupt surge in public interest, will it last? Interest = Wikipedia pageviews.</p>
+
+  <% if @replay %>
+    <div class="banner replay">
+      <strong>Replay as of <%= @as_of.strftime("%B %-d, %Y") %>.</strong>
+      Only data from complete weeks up to <%= LiveLabel.last_complete_week_end(@as_of) %> is used.
+      <%= link_to "Back to today", root_path %>
+    </div>
+  <% end %>
+  <% if @as_of_error %><div class="banner warning"><%= @as_of_error %></div><% end %>
+  <% if @mode == :demo %>
+    <div class="banner info">Demo mode: showing sample products (Shopify credentials not set).</div>
+  <% end %>
+  <% if @fatal_error %><div class="banner error"><%= @fatal_error %></div><% end %>
+</header>
+
+<% if @rows.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Mapped term</th>
+        <th>Wikipedia article</th>
+        <th>Label</th>
+        <th>Confidence</th>
+        <th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @rows.each do |row| %>
+        <tr>
+          <td><%= row.product[:title] %></td>
+          <td>
+            <%= row.mapping&.term %>
+            <% if row.mapping %><span class="muted">(from <%= row.mapping.source %>)</span><% end %>
+          </td>
+          <td><%= row.mapping&.article || "—" %></td>
+          <% if row.error %>
+            <td><span class="label label-error">Error</span></td>
+            <td>—</td>
+            <td class="muted"><%= row.error %></td>
+          <% else %>
+            <td><span class="label label-<%= row.result.label.parameterize %>"><%= row.result.label %></span></td>
+            <td><%= row.result.confidence ? number_to_percentage(row.result.confidence * 100, precision: 0) : "—" %></td>
+            <td>
+              <%= row.result.reason %>
+              <% if row.result.onset_week %><span class="muted">Surge began week of <%= row.result.onset_week %>.</span><% end %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<footer>
+  <p>
+    <%# Numbers from backtest/results/step_d_results.md, analysis (a). Update if the model is retrained. %>
+    Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends:
+    leave-one-out accuracy 75% (95% CI 51–90%) vs 62% for "still rising in week 6".
+    The difference is within noise at this sample size. Confidence is the model's probability, not a guarantee.
+  </p>
+  <p>Gradual trends never trigger a 3x surge, so they show as "No surge detected".
+    Try a replay: <%= link_to "?as_of=2017-06-12", root_path(as_of: "2017-06-12") %> (fidget spinners) or
+    <%= link_to "?as_of=2025-01-27", root_path(as_of: "2025-01-27") %> (Labubu, Dubai chocolate).
+    Replays of trends the model was trained on are in-sample, so they demo the pipeline rather than prove accuracy.</p>
+</footer>

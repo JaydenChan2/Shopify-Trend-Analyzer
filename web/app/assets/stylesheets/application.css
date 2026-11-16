@@ -1,0 +1,19 @@
+/* Plain styles for v0 (Polaris later). */
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 2rem auto; max-width: 1200px; padding: 0 1rem; color: #1a1a1a; background: #fff; }
+h1 { margin-bottom: 0.2rem; }
+.subtitle, .muted { color: #6b6b6b; }
+.muted { font-size: 0.85em; }
+.banner { padding: 0.6rem 0.9rem; border-radius: 6px; margin: 0.6rem 0; }
+.banner.replay { background: #fff4d6; border: 1px solid #e5c76b; }
+.banner.info { background: #eef4ff; border: 1px solid #b9cdf5; }
+.banner.warning { background: #fff0e6; border: 1px solid #f0b48a; }
+.banner.error { background: #fde8e8; border: 1px solid #f0a0a0; }
+table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+th, td { text-align: left; vertical-align: top; padding: 0.6rem; border-bottom: 1px solid #e6e6e6; }
+th { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.03em; color: #555; }
+.label { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.85em; white-space: nowrap; background: #eee; }
+.label-likely-sustained { background: #d9f2e3; color: #11602f; }
+.label-likely-spike { background: #fde2d6; color: #8a2a06; }
+.label-surge-detected-too-early-to-tell, .label-possible-surge-unconfirmed { background: #fff1c2; color: #6b5200; }
+.label-error { background: #fde8e8; color: #8a1111; }
+footer { margin-top: 2rem; font-size: 0.85em; color: #6b6b6b; }
