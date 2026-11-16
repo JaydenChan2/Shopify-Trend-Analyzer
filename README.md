@@ -16,6 +16,12 @@ small, so the evidence is promising, not conclusive.
 > weeks). Gradual trends never trigger that, so they show as "No surge detected".
 > They aren't covered by v0.
 
+| Fad: fidget spinner, `?as_of=2017-06-12` | Lasting: air fryer, `?as_of=2017-12-31` |
+|---|---|
+| ![Replay on 2017-06-12: fidget spinner labelled Likely spike](docs/replay-2017-06-12-fidget-spinner.png) | ![Replay on 2017-12-31: air fryer labelled Likely sustained](docs/replay-2017-12-31-air-fryer.png) |
+
+*Replays of trends the model was trained on (in-sample), so they show the pipeline, not accuracy.*
+
 ---
 
 ## What a merchant sees
@@ -81,7 +87,8 @@ without any network calls.
 cd web
 bundle install
 bin/rails server      # http://localhost:3000
-bin/rails test        # 48 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails db:prepare  # creates the SQLite database (mapping overrides)
+bin/rails test        # 64 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
@@ -252,7 +259,11 @@ excludes them, but leaves only 6 trends.
 - Live lookups don't sum former titles, unlike the backtest. A replay of Stanley
   in 2017 finds no views because the article was called "Stanley bottle" then.
 - Generic product types (accessories, giftcard, …) are deliberately *Not mapped*.
-  There's no override UI yet; there's a TODO in `ProductMapper`.
+- **Fixable per term:** every row has a *Fix mapping* form. A merchant can point
+  the search term at a specific Wikipedia article (checked to exist, and saved
+  under its real title if it's a redirect) or mark it *Don't track*. Overrides are
+  stored in SQLite (`mapping_overrides`) and apply to every product with that term.
+  Auto-mapping still gets things wrong, but a wrong mapping is now a one-click fix.
 
 **No store data yet.** There's no sales velocity, inventory or order data.
 Labels describe public interest, not this store's demand.
@@ -262,6 +273,8 @@ Labels describe public interest, not this store's demand.
 - The Shopify token is cached in plain text under `web/tmp/` (gitignored), which
   is fine for a dev store, not for production.
 - Replays use today's Wikipedia search results to map products.
+- No user accounts: anyone who can open the app can edit mapping overrides.
+  That's fine for a local dev tool, not for a shared deployment.
 
 ---
 
@@ -271,8 +284,8 @@ Labels describe public interest, not this store's demand.
   against what the store actually sells.
 - **Seasonality:** compare against the same weeks last year, and add YoY to the
   model with a `has_prior_year` flag (missing for new articles).
-- **Mapping overrides:** a table and UI so merchants can fix or confirm the
-  article for a product. Also stitch former titles in live lookups.
+- **Mapping:** stitch former titles in live lookups, and suggest candidate
+  articles in the *Fix mapping* form instead of requiring an exact title.
 - **More data:** a second interest source (e.g. Google Trends) and more labelled
   trends. More trends is the main thing needed to make the accuracy estimate meaningful.
 - **Gradual trends:** a separate detector for slow, steady growth.

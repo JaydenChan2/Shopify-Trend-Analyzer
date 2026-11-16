@@ -1,0 +1,20 @@
+<%# Form to correct the mapping for one search term (see MappingOverridesController). %>
+<% as_of = @replay ? params[:as_of] : nil %>
+<details class="fix">
+  <summary>Fix mapping for “<%= mapping.term %>”</summary>
+  <%= form_with url: mapping_overrides_path, class: "fix-form" do %>
+    <%= hidden_field_tag :term, mapping.term, id: nil %>
+    <%= hidden_field_tag :as_of, as_of, id: nil if as_of %>
+    <label>
+      Wikipedia article
+      <%= text_field_tag :article, (mapping.override_id && mapping.article), id: nil,
+                         placeholder: "Exact title, e.g. Weighted blanket" %>
+    </label>
+    <%= submit_tag "Save", name: nil %>
+    <%= button_tag "Don't track", name: "ignored", value: "1", type: "submit" %>
+  <% end %>
+  <% if mapping.override_id %>
+    <%= button_to "Remove override", mapping_override_path(mapping.override_id),
+                  method: :delete, params: { as_of: as_of }.compact, form_class: "fix-remove" %>
+  <% end %>
+</details>

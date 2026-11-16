@@ -22,3 +22,8 @@ footer { margin-top: 2rem; font-size: 0.85em; color: #6b6b6b; }
 .count { color: #6b6b6b; font-size: 0.85em; }
 details summary { cursor: pointer; }
 details ul { margin: 0.3rem 0 0 1rem; padding: 0; font-size: 0.9em; }
+.banner.success { background: #e3f5ea; border: 1px solid #9fd5b3; }
+.label-not-tracked { background: #f0f0f0; color: #888; }
+details.fix { margin-top: 0.4rem; font-size: 0.85em; }
+.fix-form { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: end; margin-top: 0.4rem; }
+.fix-form label { display: flex; flex-direction: column; gap: 0.2rem; }

@@ -9,6 +9,8 @@
       <%= link_to "Back to today", root_path %>
     </div>
   <% end %>
+  <% if notice %><div class="banner success"><%= notice %></div><% end %>
+  <% if alert %><div class="banner error"><%= alert %></div><% end %>
   <% if @as_of_error %><div class="banner warning"><%= @as_of_error %></div><% end %>
   <% if @source&.mode == :demo %>
     <div class="banner info">Demo mode: showing sample products (Shopify credentials not set).</div>
@@ -46,8 +48,12 @@
             <% end %>
           </td>
           <td>
-            <%= row.mapping.term %>
-            <span class="muted">(from <%= row.mapping.source %>)</span>
+            <% row.mappings.each do |mapping| %>
+              <div>
+                <%= mapping.term %>
+                <span class="muted">(from <%= mapping.source %><%= ", override" if mapping.override_id %>)</span>
+              </div>
+            <% end %>
           </td>
           <td><%= row.article || "—" %></td>
           <% if row.error %>
@@ -61,6 +67,7 @@
               <%= row.result.reason %>
               <% if row.result.onset_week %><span class="muted">Surge began week of <%= row.result.onset_week %>.</span><% end %>
               <% row.notes.each do |note| %><div class="note">⚠ <%= note %></div><% end %>
+              <% row.mappings.each do |mapping| %><%= render "fix_mapping", mapping: mapping %><% end %>
             </td>
           <% end %>
         </tr>
@@ -77,7 +84,7 @@
     The difference is within noise at this sample size. Confidence is the model's probability, not a guarantee.
   </p>
   <p>Gradual trends never trigger a 3x surge, so they show as "No surge detected".
-    Try a replay: <%= link_to "?as_of=2017-06-12", root_path(as_of: "2017-06-12") %> (fidget spinners) or
-    <%= link_to "?as_of=2025-01-27", root_path(as_of: "2025-01-27") %> (Labubu, Dubai chocolate).
+    Try a replay: <%= link_to "?as_of=2017-06-12", root_path(as_of: "2017-06-12") %> (fidget spinner, spike) or
+    <%= link_to "?as_of=2017-12-31", root_path(as_of: "2017-12-31") %> (air fryer, sustained).
     Replays of trends the model was trained on are in-sample, so they demo the pipeline rather than prove accuracy.</p>
 </footer>

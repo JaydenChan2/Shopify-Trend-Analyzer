@@ -63,6 +63,26 @@ class ProductMapperTest < ActiveSupport::TestCase
     end
   end
 
+  # Option 2: merchant overrides beat search, the sanity check and the generic list.
+  test "an override decides the article without searching" do
+    override = MappingOverride.create!(term_key: "the minimal snowboard", article: "Snowboard")
+    m = map({ title: "The Minimal Snowboard", product_type: "" })
+    assert_equal ["Snowboard", override.id], [m.article, m.override_id]
+    assert_empty @wiki.searched
+  end
+
+  test "an ignored override marks the term as not tracked, even for generic types" do
+    MappingOverride.create!(term_key: "giftcard", ignored: true)
+    m = map({ title: "Gift Card", product_type: "giftcard" })
+    assert m.ignored
+    assert_nil m.article
+  end
+
+  test "generic check applies to product types, not titles" do
+    m = map({ title: "Other", product_type: "" }, "Other" => { title: "Other", redirect_from: nil })
+    assert_equal "Other", m.article
+  end
+
   test "no search result means not mapped" do
     m = map({ title: "Zzz", product_type: "Zzzqx" }, "Zzzqx" => nil)
     assert_nil m.article

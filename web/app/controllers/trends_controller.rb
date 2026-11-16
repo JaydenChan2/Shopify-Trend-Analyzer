@@ -1,13 +1,16 @@
 class TrendsController < ApplicationController
   EARLIEST_AS_OF = Date.new(2016, 2, 1) # need ~26 weeks of data (from 2015-07) for a baseline
 
+  # Tests swap in a fake so they never call Wikipedia.
+  class_attribute :wikipedia_client, default: nil
+
   # GET /            -> labels as of today
   # GET /?as_of=DATE -> replay: what the app would have said on DATE (no data after it is used)
   def index
     @as_of, @as_of_error = parse_as_of(params[:as_of])
     @replay = params[:as_of].present? && @as_of_error.nil?
     @source = ProductSource.call
-    wikipedia = WikipediaClient.new
+    wikipedia = self.class.wikipedia_client || WikipediaClient.new
     @rows = ProductTrend.rows(@source.products, as_of: @as_of, wikipedia: wikipedia)
   rescue WikipediaClient::MissingContact => e
     @fatal_error = e.message

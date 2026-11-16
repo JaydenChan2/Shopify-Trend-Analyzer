@@ -24,6 +24,21 @@ class WikipediaClient
     end
   end
 
+  # Exact-title lookup, following redirects: { title:, redirected_from: } or nil if no such article.
+  # Used to validate mapping overrides before saving them.
+  def resolve_title(title)
+    Rails.cache.fetch(["wiki-resolve-v1", title], expires_in: 1.day) do
+      uri = URI(SEARCH_API)
+      uri.query = URI.encode_www_form(action: "query", titles: title, redirects: 1, format: "json")
+      query = JSON.parse(get(uri).body).fetch("query")
+      page = query.fetch("pages").values.first
+      next nil if page.key?("missing") || page.key?("invalid")
+
+      redirect = query.fetch("redirects", []).first
+      { title: page["title"], redirected_from: redirect && redirect["from"] }
+    end
+  end
+
   # [[monday, views], ...] for every week from 2015-07-06 up to the week ending `through` (a Sunday).
   def weekly_views(article, through:)
     daily = daily_views(article, through)

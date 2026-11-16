@@ -1,13 +1,7 @@
 # Maps a product to a search term (productType, falling back to title) and then
-# to a Wikipedia article via search, refusing mappings that are likely wrong.
+# to a Wikipedia article: a merchant's MappingOverride if there is one, otherwise
+# Wikipedia search, refusing search results that are likely wrong.
 class ProductMapper
-  # TODO(mapping overrides): merchants need to correct bad mappings (e.g. a search
-  # that lands on the wrong article). Plan: a SQLite table
-  # term_overrides(product_id, wikipedia_article) checked before searching,
-  # editable from the page. Until then, this hash is the stand-in, keyed by
-  # lowercase search term => exact Wikipedia article title (skips all checks).
-  OVERRIDES = {}.freeze
-
   # Product types too broad to stand for a trend. Compared after lowercasing and
   # removing everything but letters, so "Gift Card" and "giftcard" both match.
   GENERIC_TYPES = %w[
@@ -18,7 +12,9 @@ class ProductMapper
   STOPWORDS = %w[a an and the of for with in on by to].to_set.freeze
 
   # article is nil when unmapped; `problem` then explains why.
-  Mapping = Struct.new(:term, :source, :article, :redirected_from, :problem, keyword_init: true)
+  # override_id is set when a MappingOverride decided the mapping; ignored when it says "don't track".
+  Mapping = Struct.new(:term, :source, :article, :redirected_from, :problem, :override_id, :ignored,
+                       keyword_init: true)
 
   def initialize(wikipedia: WikipediaClient.new)
     @wikipedia = wikipedia
@@ -27,15 +23,14 @@ class ProductMapper
   # product: { title:, product_type:, tags: }
   def call(product)
     type = product[:product_type].to_s.strip
-    if type.present?
-      term, source = type, "productType"
-      return unmapped(term, source, "Product type \"#{type}\" is too generic to map to a trend.") if generic?(type)
-    else
-      term, source = search_friendly(product[:title]), "title"
-    end
+    term, source = type.present? ? [type, "productType"] : [search_friendly(product[:title]), "title"]
 
-    if (article = OVERRIDES[term.downcase])
-      return Mapping.new(term: term, source: source, article: article)
+    # The merchant's correction wins over everything else (search, sanity check, generic list).
+    if (override = MappingOverride.for_term(term))
+      return from_override(term, source, override)
+    end
+    if source == "productType" && generic?(type)
+      return unmapped(term, source, "Product type \"#{type}\" is too generic to map to a trend.")
     end
 
     hit = @wikipedia.search(term)
@@ -48,6 +43,15 @@ class ProductMapper
   end
 
   private
+
+  def from_override(term, source, override)
+    if override.ignored?
+      Mapping.new(term: term, source: source, override_id: override.id, ignored: true,
+                  problem: "Marked \"don't track\".")
+    else
+      Mapping.new(term: term, source: source, article: override.article, override_id: override.id)
+    end
+  end
 
   def unmapped(term, source, problem)
     Mapping.new(term: term, source: source, problem: problem)

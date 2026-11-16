@@ -2,12 +2,21 @@
 # Wikipedia article (15 snowboards -> one row), then label each group once.
 # Errors are kept per row so one bad lookup doesn't break the page.
 class ProductTrend
-  # article: the article whose views were actually used (can differ from mapping.article in replays).
-  Row = Struct.new(:products, :mapping, :article, :result, :notes, :error, keyword_init: true)
+  # mapping:  the first product's mapping (drives the label and notes)
+  # mappings: every distinct search term in the group, e.g. "snowboard" plus an
+  #           overridden "The Minimal Snowboard", so each gets its own fix/remove form
+  # article:  the article whose views were actually used (can differ from mapping.article in replays)
+  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, keyword_init: true) do
+    def initialize(**fields)
+      super
+      self.mappings ||= [mapping]
+    end
+  end
 
   # Rows with model calls first, unmapped last.
   LABEL_ORDER = ["Likely sustained", "Likely spike", "Surge detected – too early to tell",
-                 "Possible surge (unconfirmed)", "No surge detected", "Not enough data", "Not mapped"].freeze
+                 "Possible surge (unconfirmed)", "No surge detected", "Not enough data", "Not mapped",
+                 "Not tracked"].freeze
 
   def self.rows(products, as_of:, wikipedia: WikipediaClient.new)
     new(wikipedia, as_of).rows(products)
@@ -22,7 +31,11 @@ class ProductTrend
   def rows(products)
     mapped = products.map { |product| [product, @mapper.call(product)] }
     groups = mapped.group_by { |_, m| m.article ? "article:#{m.article}" : "unmapped:#{m.term.to_s.downcase}" }
-    built = groups.values.map { |pairs| build_row(pairs.map(&:first), pairs.first.last) }
+    built = groups.values.map do |pairs|
+      row = build_row(pairs.map(&:first), pairs.first.last)
+      row.mappings = pairs.map(&:last).uniq { |m| m.term.downcase }
+      row
+    end
     built.sort_by { |row| [LABEL_ORDER.index(row.result&.label) || LABEL_ORDER.size, -row.products.size] }
   end
 
@@ -30,8 +43,9 @@ class ProductTrend
 
   def build_row(products, mapping)
     if mapping.article.nil?
+      label = mapping.ignored ? "Not tracked" : "Not mapped"
       return Row.new(products: products, mapping: mapping, notes: [],
-                     result: LiveLabel::Result.new(label: "Not mapped", reason: mapping.problem))
+                     result: LiveLabel::Result.new(label: label, reason: mapping.problem))
     end
 
     article, notes = series_article(mapping)
