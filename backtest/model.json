@@ -1,0 +1,42 @@
+{
+  "description": "Logistic regression P(sustained) on standardized early-window features. z = (x - mean) / scale; p = 1 / (1 + exp(-(intercept + sum(coef * z)))).",
+  "features": [
+    "growth",
+    "acceleration",
+    "peak_sharpness",
+    "volatility"
+  ],
+  "scaler_mean": [
+    0.11428288960189678,
+    -0.18304711161403003,
+    1.7893967509799205,
+    0.38796250896466977
+  ],
+  "scaler_scale": [
+    0.7325759716357874,
+    1.336501194019577,
+    0.5138354527903226,
+    0.18956154936815411
+  ],
+  "coefficients": [
+    0.3547575259703818,
+    0.16053990226905662,
+    -1.2016950668806168,
+    -0.8827478778108361
+  ],
+  "intercept": -0.25411850360259836,
+  "positive_class": "sustained",
+  "trained_on": {
+    "analysis": "a",
+    "n": 16,
+    "n_sustained": 8,
+    "n_spike": 8
+  },
+  "rules": {
+    "early_weeks": 6,
+    "onset_multiplier": 3.0,
+    "onset_confirm_weeks": 2,
+    "baseline_weeks": 26,
+    "min_weekly_views": 2000
+  }
+}
