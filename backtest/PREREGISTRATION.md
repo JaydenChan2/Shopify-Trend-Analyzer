@@ -73,3 +73,18 @@ week t. Onset is week t. The live app uses the same rule.
 
 **Reporting:** Step D reports a fourth line, **(d)**, the original 1-week rule
 on all rows, so the effect of this amendment is visible.
+
+---
+
+## Amendment 2: Wilson confidence intervals (reporting only, added before Step D)
+
+**Status:** added after Step B, before any feature or model result existed. It
+changes reporting only: no data, rule, feature or model choice.
+
+- Every accuracy is reported with a Wilson 95% confidence interval (z = 1.96).
+- Clarification of an unspecified detail: if a training fold's labels are tied,
+  the majority baseline predicts "spike".
+- Known label noise, accepted with no further rule changes: Scrunchie (onset
+  dominated by a single day), Impossible Foods (onset week is its news peak),
+  Mom jeans (onset in Christmas week).
+- Analysis (b) has n = 6 and is reported but marked too small to interpret.
