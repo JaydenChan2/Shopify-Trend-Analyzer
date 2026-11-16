@@ -276,6 +276,15 @@ code { font-size: 0.9em; background: var(--bg-soft); border: 1px solid var(--bor
 .em-bar .pos { left: 50%; background: var(--success); }
 .em-bar .neg { right: 50%; background: var(--warning); }
 .explain-mock p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+/* spike vs stay comparison on the landing page */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 860px; margin: 0 auto; }
+.compare-card { display: grid; gap: 14px; justify-items: start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; color: var(--ink); box-shadow: var(--shadow); transition: transform 0.25s var(--ease), box-shadow 0.25s; }
+.compare-card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.compare-card svg { width: 100%; height: 110px; }
+.compare-card polyline { fill: none; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.compare-card strong { font-size: 24px; letter-spacing: -0.02em; }
+.compare-cta { color: var(--green); font-size: 14px; font-weight: 600; }
+@media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
 .replay-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 22px; }
 .replay-card { display: grid; gap: 6px; justify-items: start; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; color: var(--ink); box-shadow: var(--shadow-sm); transition: transform 0.25s var(--ease), box-shadow 0.25s; }
 .replay-card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: var(--shadow); }

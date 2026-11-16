@@ -19,9 +19,9 @@
   <% unless detail.empty? %>
     <dl class="detail-stats">
       <div><dt>Latest week</dt><dd><%= compact_views(detail.values.last) %></dd></div>
-      <div><dt>Usual level</dt><dd><%= detail.baseline ? compact_views(detail.baseline) : "—" %></dd><span class="hint">26-week median</span></div>
-      <div><dt>Surge bar</dt><dd><%= detail.surge_bar ? compact_views(detail.surge_bar) : "—" %></dd><span class="hint">3× usual</span></div>
-      <div><dt>2-year peak</dt><dd><%= compact_views(detail.values.last(TrendChart::WINDOW_WEEKS).max) %></dd></div>
+      <div><dt>Usual week</dt><dd><%= detail.baseline ? compact_views(detail.baseline) : "—" %></dd><span class="hint">typical views, last 6 months</span></div>
+      <div><dt>Jump level</dt><dd><%= detail.surge_bar ? compact_views(detail.surge_bar) : "—" %></dd><span class="hint">3 times a usual week</span></div>
+      <div><dt>Busiest week</dt><span class="hint">in the last 2 years</span><dd><%= compact_views(detail.values.last(TrendChart::WINDOW_WEEKS).max) %></dd></div>
     </dl>
     <%= render "chart", chart: detail.chart, detail: detail %>
   <% else %>
@@ -30,8 +30,8 @@
 
   <% if detail.scored? %>
     <section class="explain">
-      <h3>How the model decided</h3>
-      <p class="hint">Each bar is how much one early-weeks feature pushed the prediction, compared with an average past trend.</p>
+      <h3>Why it made this call</h3>
+      <p class="hint">The model looks at four things about the first six weeks. Each bar shows whether that signal points to a spike (left) or lasting interest (right).</p>
       <% max = detail.contributions.map { |c| c[:contribution].abs }.max.to_f.nonzero? || 1.0 %>
       <ul class="contrib">
         <% detail.contributions.each do |c| %>

@@ -6,20 +6,25 @@
   <section class="app-head">
     <div>
       <p class="eyebrow">Dashboard</p>
-      <h1>Your catalog, <em>at a glance</em></h1>
-      <p class="lede">Which products are riding a surge in public interest, and whether it's likely to last.</p>
+      <h1>Your products, <em>at a glance</em></h1>
+      <p class="lede">Each card shows how much people are reading about a product on Wikipedia, and whether a jump in interest looks short-lived or lasting.</p>
     </div>
     <div class="app-head-actions">
       <% if @replay %>
         <%= link_to "Back to today", dashboard_path, class: "btn btn-outline btn-sm" %>
       <% else %>
-        <%= link_to "Try a replay", dashboard_path(as_of: "2017-12-31"), class: "btn btn-outline btn-sm" %>
+        <%= link_to "See a 2017 example", dashboard_path(as_of: "2017-12-31"), class: "btn btn-outline btn-sm" %>
       <% end %>
       <%= link_to "How it works", methodology_path, class: "btn btn-ghost-dark btn-sm" %>
     </div>
   </section>
 
   <div class="banners">
+    <div class="banner info">
+      <strong>How to read this:</strong>
+      <em>Likely spike</em> means interest jumped but will probably fade, so be careful buying lots of stock.
+      <em>Likely sustained</em> means interest looks like it will last. Click a card for the full chart.
+    </div>
     <% if @replay %>
       <div class="banner info">
         <strong>Replay as of <%= @as_of.strftime("%B %-d, %Y") %>.</strong>
@@ -32,7 +37,7 @@
     <% if @as_of_error %><div class="banner warning"><%= @as_of_error %></div><% end %>
     <% if @fatal_error %><div class="banner critical"><%= @fatal_error %></div><% end %>
     <% if @source&.mode == :demo %>
-      <div class="banner info">Demo mode: showing sample products (Shopify credentials not set).</div>
+      <div class="banner info">Demo mode: these are sample products. Add Shopify details to see your own store.</div>
     <% elsif @source&.error %>
       <div class="banner critical">Couldn't load products from <%= @source.shop %>: <%= @source.error %></div>
     <% end %>
@@ -50,7 +55,7 @@
 
     <section>
       <div class="section-head">
-        <h2 class="section-title">Products. <span>What public interest says about each one.</span></h2>
+        <h2 class="section-title">Your products. <span>Click a card to see its chart.</span></h2>
         <p class="filter-status" hidden>Showing <strong data-filter-name></strong> · <button type="button" class="link-button" data-filter-clear>Show all</button></p>
       </div>
       <div class="product-grid">
@@ -77,13 +82,13 @@
               <p class="reason"><%= row.error %></p>
             <% else %>
               <p class="reason"><%= row.result.reason %></p>
-              <% if row.result.onset_week %><p class="meta">Surge began week of <%= row.result.onset_week %>.</p><% end %>
+              <% if row.result.onset_week %><p class="meta">Interest jumped the week of <%= row.result.onset_week %>.</p><% end %>
             <% end %>
             <% row.notes.to_a.each do |note| %><p class="note"><%= note %></p><% end %>
 
             <dl class="mapping">
               <div>
-                <dt>Term</dt>
+                <dt>Searched for</dt>
                 <dd class="terms">
                   <% row.mappings.each do |mapping| %>
                     <span class="term"><%= mapping.term %> <span class="muted">(<%= mapping.source %><%= ", override" if mapping.override_id %>)</span></span>
@@ -91,7 +96,7 @@
                 </dd>
               </div>
               <div>
-                <dt>Article</dt>
+                <dt>Wikipedia page</dt>
                 <dd class="article"><%= row.article || "—" %></dd>
               </div>
             </dl>

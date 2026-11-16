@@ -22,7 +22,7 @@ class TrendsHelperTest < ActionView::TestCase
 
   test "summary counts group labels and only show errors when present" do
     rows = [row("Likely spike"), row("No surge detected"), row("No surge detected"), row("Not tracked")]
-    assert_equal({ "surge" => ["Surges", 1], "quiet" => ["Quiet", 2], "nodata" => ["Not enough data", 0],
+    assert_equal({ "surge" => ["Interest jumped", 1], "quiet" => ["No jump", 2], "nodata" => ["Not enough data", 0],
                    "unmapped" => ["Not mapped", 1] }, summary_counts(rows))
     assert_equal ["Errors", 1], summary_counts(rows + [row(nil, error: "x")])["error"]
   end

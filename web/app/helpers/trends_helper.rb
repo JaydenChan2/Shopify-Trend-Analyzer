@@ -15,15 +15,15 @@ module TrendsHelper
 
   # Stat cards double as filters: each label belongs to one group.
   GROUPS = {
-    "surge" => "Surges", "quiet" => "Quiet", "nodata" => "Not enough data",
+    "surge" => "Interest jumped", "quiet" => "No jump", "nodata" => "Not enough data",
     "unmapped" => "Not mapped", "error" => "Errors"
   }.freeze
 
   FEATURE_NAMES = {
-    "growth" => ["Growth", "weeks 3–5 vs weeks 0–2"],
-    "acceleration" => ["Acceleration", "is growth speeding up or slowing?"],
-    "peak_sharpness" => ["Peak sharpness", "how spiky the 6 weeks are"],
-    "volatility" => ["Volatility", "how jumpy week to week"]
+    "growth" => ["Growth", "are the later weeks higher than the first ones?"],
+    "acceleration" => ["Speeding up", "is growth getting faster or slower?"],
+    "peak_sharpness" => ["Sharp peak", "is it one big spike or a steady climb?"],
+    "volatility" => ["Jumpiness", "how much it swings week to week"]
   }.freeze
 
   def label_tone(label)
