@@ -26,18 +26,18 @@ small, so the evidence is promising, not conclusive.
 
 ## What a merchant sees
 
-One page: a table of products with the mapped search term, the Wikipedia article,
-a label, a confidence and the reasons. Each row has a *Fix mapping* form.
+One page: summary cards (surges, quiet, not enough data, not mapped), then one
+card per product (or group of products sharing an article). Each card shows a
+label with its confidence ("Likely sustained · 67%"), the reason, any warnings,
+the mapped term and Wikipedia article, and a *Fix mapping* form.
 
-The page is built from Shopify's
-[Polaris web components](https://shopify.dev/docs/api/app-home), loaded from
-Shopify's CDN with one script tag in plain ERB views (no React, no build step).
-So it looks like the Shopify admin, and at phone width the table turns into cards.
-Shopify's docs only describe these components inside the embedded admin. I checked
-in a browser that they also render standalone without App Bridge, and that
-`s-text-field` and `s-button type="submit"` work with ordinary Rails forms. One
-quirk: `s-button` doesn't send its own `name`/`value`, so each form action has
-its own small form.
+The look is a dark storefront style modelled on the
+[ClaudeCMS store demo](https://claudecms.com/store-demo/): black page, rounded
+near-black cards, system font, heavy two-tone headings, pill tags and an orange
+accent. The colours and type sizes were measured from that page, and the CSS is
+written from scratch in one file (`web/app/assets/stylesheets/application.css`).
+It's plain ERB and CSS, with no front-end framework or build step. The card grid
+stacks to one column on phones.
 
 | Label | Meaning |
 |---|---|
@@ -98,7 +98,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 68 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 69 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
@@ -299,5 +299,7 @@ Labels describe public interest, not this store's demand.
 - **More data:** a second interest source (e.g. Google Trends) and more labelled
   trends. More trends is the main thing needed to make the accuracy estimate meaningful.
 - **Gradual trends:** a separate detector for slow, steady growth.
-- **Product:** embed in Shopify admin (App Bridge + session tokens), weekly
-  digest emails, OAuth install flow for a public app, deployment.
+- **Product:** embed in Shopify admin (App Bridge + session tokens). Inside the
+  admin, Shopify expects the Polaris look, so the embedded view would switch to
+  Polaris components. Also weekly digest emails, OAuth install flow for a public
+  app, deployment.

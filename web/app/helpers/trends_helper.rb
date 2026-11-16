@@ -1,32 +1,44 @@
-# View helpers for the trends page (Polaris web components).
+# View helpers for the trends page.
 module TrendsHelper
-  # Polaris <s-badge tone="..."> per label. Spikes are "warning", not "critical":
-  # a spike isn't an error, just a reason to be careful with stock.
+  # Colour tone per label (a CSS class suffix: .tone-success etc.).
+  # Spikes are "warning", not "critical": a spike isn't an error, just a reason
+  # to be careful with stock.
   LABEL_TONES = {
     "Likely sustained" => "success",
     "Likely spike" => "warning",
     "Surge detected – too early to tell" => "caution",
-    "Possible surge (unconfirmed)" => "caution"
+    "Possible surge (unconfirmed)" => "caution",
+    "Error" => "critical"
   }.freeze
 
-  SURGE_LABELS = LABEL_TONES.keys.freeze
+  SURGE_LABELS = LABEL_TONES.keys.first(4).freeze
 
   def label_tone(label)
     LABEL_TONES.fetch(label, "neutral")
   end
 
-  # "2 surges · 5 quiet · 4 not enough data · 3 not mapped" for the summary line.
-  def summary_line(rows)
-    labels = rows.map { |row| row.error ? "Error" : row.result.label }
-    parts = {
-      "surge" => labels.count { |l| SURGE_LABELS.include?(l) },
-      "quiet" => labels.count("No surge detected"),
-      "not enough data" => labels.count("Not enough data"),
-      "not mapped" => labels.count { |l| ["Not mapped", "Not tracked"].include?(l) },
-      "error" => labels.count("Error")
+  def row_label(row)
+    row.error ? "Error" : row.result.label
+  end
+
+  # "Likely sustained · 67%": confidence lives inside the label pill.
+  def label_text(row)
+    return "Error" if row.error
+
+    confidence = row.result.confidence
+    confidence ? "#{row.result.label} · #{number_to_percentage(confidence * 100, precision: 0)}" : row.result.label
+  end
+
+  # Counts for the stat cards, in display order. Errors only appear if there are any.
+  def summary_counts(rows)
+    labels = rows.map { |row| row_label(row) }
+    counts = {
+      "Surges" => labels.count { |l| SURGE_LABELS.include?(l) },
+      "Quiet" => labels.count("No surge detected"),
+      "Not enough data" => labels.count("Not enough data"),
+      "Not mapped" => labels.count { |l| ["Not mapped", "Not tracked"].include?(l) }
     }
-    parts.reject { |_, n| n.zero? }.map do |name, n|
-      name == "surge" ? pluralize(n, "surge") : "#{n} #{name}"
-    end.join(" · ")
+    errors = labels.count("Error")
+    errors.positive? ? counts.merge("Errors" => errors) : counts
   end
 end

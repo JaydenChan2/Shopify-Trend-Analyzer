@@ -1,32 +1,31 @@
 <%# Fix the mapping for one search term (see MappingOverridesController).
-    Three small native forms with Polaris controls inside: Polaris buttons submit the
-    closest form, but don't send their own name/value, so each action gets its own form. %>
+    Save, Don't track and Remove are three small forms, so each sends exactly what it needs.
+    Locals: mapping, show_term (true when the card has several terms and needs to say which). %>
 <% as_of = @replay ? params[:as_of] : nil %>
 <details class="fix">
-  <summary>Fix mapping for “<%= mapping.term %>”</summary>
-  <s-stack gap="small-200">
-    <%= form_with url: mapping_overrides_path, class: "fix-form" do %>
+  <summary>Fix mapping<%= " for “#{mapping.term}”" if local_assigns[:show_term] %> ›</summary>
+  <%= form_with url: mapping_overrides_path, class: "fix-form" do %>
+    <%= hidden_field_tag :term, mapping.term, id: nil %>
+    <%= hidden_field_tag :as_of, as_of, id: nil if as_of %>
+    <label>
+      <span>Wikipedia article for “<%= mapping.term %>”</span>
+      <%= text_field_tag :article, (mapping.override_id && mapping.article), id: nil,
+                         placeholder: "Exact title, e.g. Weighted blanket" %>
+    </label>
+    <button type="submit" class="btn btn-primary">Save</button>
+  <% end %>
+  <div class="fix-actions">
+    <%= form_with url: mapping_overrides_path, class: "fix-ignore" do %>
       <%= hidden_field_tag :term, mapping.term, id: nil %>
+      <%= hidden_field_tag :ignored, "1", id: nil %>
       <%= hidden_field_tag :as_of, as_of, id: nil if as_of %>
-      <s-stack direction="inline" gap="small-200" alignItems="end">
-        <s-text-field name="article" label="Wikipedia article" placeholder="Exact title, e.g. Weighted blanket"
-                      value="<%= mapping.override_id && mapping.article %>"></s-text-field>
-        <s-button type="submit" variant="primary">Save</s-button>
-      </s-stack>
+      <button type="submit" class="btn btn-secondary">Don't track</button>
     <% end %>
-    <s-stack direction="inline" gap="small-200">
-      <%= form_with url: mapping_overrides_path, class: "fix-ignore" do %>
-        <%= hidden_field_tag :term, mapping.term, id: nil %>
-        <%= hidden_field_tag :ignored, "1", id: nil %>
+    <% if mapping.override_id %>
+      <%= form_with url: mapping_override_path(mapping.override_id), method: :delete, class: "fix-remove" do %>
         <%= hidden_field_tag :as_of, as_of, id: nil if as_of %>
-        <s-button type="submit" variant="secondary">Don't track</s-button>
+        <button type="submit" class="btn btn-danger">Remove override</button>
       <% end %>
-      <% if mapping.override_id %>
-        <%= form_with url: mapping_override_path(mapping.override_id), method: :delete, class: "fix-remove" do %>
-          <%= hidden_field_tag :as_of, as_of, id: nil if as_of %>
-          <s-button type="submit" variant="tertiary" tone="critical">Remove override</s-button>
-        <% end %>
-      <% end %>
-    </s-stack>
-  </s-stack>
+    <% end %>
+  </div>
 </details>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title><%= content_for(:title) || "Spike or Stay" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -17,10 +17,6 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Polaris web components (<s-page>, <s-table>, <s-badge>, ...), Shopify's stable channel.
-        Works standalone: App Bridge is only needed once the app is embedded in Shopify admin. %>
-    <script src="https://cdn.shopify.com/shopifycloud/polaris-2.js"></script>
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app %>
