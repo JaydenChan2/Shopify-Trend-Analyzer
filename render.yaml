@@ -1,0 +1,23 @@
+# Render Blueprint: New > Blueprint in the Render dashboard, then pick this repo.
+# Runs the public demo: no Shopify variables are set, so the dashboard uses demo products.
+services:
+  - type: web
+    name: spike-or-stay
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /up
+    envVars:
+      # Signs cookies and CSRF tokens. Render generates a random one.
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      # Required by Wikipedia's API policy (an email or URL). You type it in when creating the Blueprint.
+      - key: WIKI_CONTACT
+        sync: false
+      # Optional. Set it to let you fix product mappings on the live site (username "admin").
+      # Leave it blank and mapping overrides are switched off for visitors.
+      - key: OVERRIDES_PASSWORD
+        sync: false
+      - key: WEB_CONCURRENCY
+        value: "1"

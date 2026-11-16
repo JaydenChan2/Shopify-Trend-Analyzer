@@ -1,0 +1,21 @@
+# Only web/ and two backtest files go into the image (see Dockerfile).
+.git
+.env
+.env.*
+.venv
+docs
+backtest/cache
+backtest/results
+backtest/tests
+**/__pycache__
+**/.pytest_cache
+**/.DS_Store
+
+web/.env*
+web/config/master.key
+web/log/*
+web/tmp/*
+web/storage/*
+web/db/*.sqlite3*
+web/public/assets
+web/test

@@ -1,0 +1,9 @@
+#!/bin/bash -e
+# Runs before the server starts in the Docker image: creates or migrates the SQLite
+# database (the mapping_overrides table), then hands over to the server command.
+
+if [[ "$*" == *"rails server"* ]]; then
+  ./bin/rails db:prepare
+fi
+
+exec "$@"

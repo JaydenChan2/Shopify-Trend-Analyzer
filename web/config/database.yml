@@ -26,6 +26,10 @@ test:
 #
 # Similarly, if you deploy your application as a Docker container, you must
 # ensure the database is located in a persisted volume.
+#
+# On Render's free plan storage/ is wiped on every deploy and restart, so overrides
+# reset (the app itself needs nothing else from the database). Attach a disk and point
+# DATABASE_PATH at it to keep them.
 production:
   <<: *default
-  # database: path/to/persistent/storage/production.sqlite3
+  database: <%= ENV.fetch("DATABASE_PATH", "storage/production.sqlite3") %>

@@ -128,7 +128,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000 (landing page; the app is at /dashboard)
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 90 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 93 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
@@ -144,6 +144,35 @@ expires after about 24 hours, so it's cached with its expiry and refetched short
 before it lapses. The app then reads ACTIVE products (title, productType, tags)
 through the GraphQL Admin API. There's no OAuth install flow; it isn't needed for
 an app and store in the same organization.
+
+### Deploy to Render (public demo)
+
+The repo has a `Dockerfile` (built from the repo root, since the app reads
+`backtest/model.json` and `backtest/trends.csv`) and a `render.yaml` Blueprint.
+
+1. Push the repo to GitHub.
+2. In Render: **New → Blueprint**, pick the repo. Render reads `render.yaml`.
+3. When asked, fill in:
+   - `WIKI_CONTACT`: an email or URL (required by Wikipedia).
+   - `OVERRIDES_PASSWORD`: optional (see below).
+
+   `SECRET_KEY_BASE` is generated for you, so no `master.key` is needed.
+4. Deploy. The first build takes a few minutes; the container runs
+   `bin/rails db:prepare` before starting the server.
+
+How the public deploy behaves:
+
+- **Demo mode.** No Shopify variables are set, so visitors see the sample
+  products and never your store. Don't add the Shopify variables to a public
+  service unless you're happy for anyone with the link to see that store's products.
+- **Mapping overrides are locked.** In production, *Fix mapping* is turned off
+  unless `OVERRIDES_PASSWORD` is set. If it is set, saving asks for a username
+  (`admin`, or `OVERRIDES_USER`) and that password.
+- **Free plan limits.** The service sleeps after about 15 minutes idle, and the
+  first visit afterwards takes up to a minute. Storage is wiped on every deploy
+  and restart: the Wikipedia cache rebuilds itself, but saved overrides are lost.
+  To keep them, move to a paid instance, attach a disk (e.g. at `/data`) and set
+  `DATABASE_PATH=/data/production.sqlite3` and `CACHE_DIR=/data/cache`.
 
 ---
 
@@ -313,8 +342,9 @@ Labels describe public interest, not this store's demand.
 - The Shopify token is cached in plain text under `web/tmp/` (gitignored), which
   is fine for a dev store, not for production.
 - Replays use today's Wikipedia search results to map products.
-- No user accounts: anyone who can open the app can edit mapping overrides.
-  That's fine for a local dev tool, not for a shared deployment.
+- No user accounts. Locally, anyone who can open the app can edit mapping
+  overrides. In production they're locked, or behind one shared password
+  (`OVERRIDES_PASSWORD`), which is enough for a demo but isn't per-merchant access.
 
 ---
 
@@ -331,5 +361,5 @@ Labels describe public interest, not this store's demand.
 - **Gradual trends:** a separate detector for slow, steady growth.
 - **Product:** embed in Shopify admin (App Bridge + session tokens). Inside the
   admin, Shopify expects the Polaris look, so the embedded view would switch to
-  Polaris components. Also weekly digest emails, OAuth install flow for a public
-  app, deployment.
+  Polaris components. Also weekly digest emails and an OAuth install flow for a
+  public app.
