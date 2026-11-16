@@ -7,9 +7,18 @@ data (Wikipedia pageviews) and labels each product's trend as **likely sustained
 or **likely spike**. Each label comes with a confidence and a plain-English reason,
 not just a verdict.
 
-**Live demo:** https://spike-or-stay-ecsk.onrender.com (sample products; try the
-[fidget spinner replay](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-06-12)
-or the [air fryer replay](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-12-31)).
+**Live demo:** https://spike-or-stay-ecsk.onrender.com, connected to a Shopify dev
+store of trend products. Today's view is mostly quiet (none of them is surging this
+week), so try a replay, which reruns the app as if it were that date:
+
+| Replay | What it shows |
+|---|---|
+| [Labubu, 2025-01-05](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2025-01-05) | Labubu: *Likely sustained*. Dubai chocolate and Jellycat: surge, too early to tell |
+| [Pop Mart, 2024-12-08](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2024-12-08) | Pop Mart: *Likely sustained*. Labubu: surge, too early to tell |
+| [Fidget spinner, 2017-06-12](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-06-12) | Fidget spinner: *Likely spike* |
+| [Air fryer, 2017-12-31](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-12-31) | Air fryer: *Likely sustained* |
+
+The 2024–25 trends weren't in the model's training data; the 2017 ones were.
 It's on Render's free plan, so the first visit after a quiet spell can take up to a minute to wake up.
 
 The model behind the labels was backtested first, on past trends with an
@@ -133,7 +142,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000 (landing page; the app is at /dashboard)
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 93 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 94 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
@@ -167,16 +176,19 @@ The repo has a `Dockerfile` (built from the repo root, since the app reads
 
 How the public deploy behaves:
 
-- **Demo mode.** No Shopify variables are set, so visitors see the sample
-  products and never your store. Don't add the Shopify variables to a public
-  service unless you're happy for anyone with the link to see that store's products.
+- **Store or demo.** With no Shopify variables, visitors see the sample products.
+  To show a store, add `SHOPIFY_SHOP_DOMAIN`, `SHOPIFY_CLIENT_ID` and
+  `SHOPIFY_CLIENT_SECRET` in the service's Environment tab. The live demo does
+  this with a dev store of trend products. Anyone with the link sees that store's
+  product names (the app only reads products), so use a dev store, not a real one.
 - **Mapping overrides are locked.** In production, *Fix mapping* is turned off
   unless `OVERRIDES_PASSWORD` is set. If it is set, saving asks for a username
   (`admin`, or `OVERRIDES_USER`) and that password.
 - **Free plan limits.** The service sleeps after about 15 minutes idle, and the
   first visit afterwards takes up to a minute. Storage is wiped on every deploy
-  and restart: the Wikipedia cache rebuilds itself, but saved overrides are lost.
-  To keep them, move to a paid instance, attach a disk (e.g. at `/data`) and set
+  and restart: the Wikipedia cache rebuilds itself, but overrides saved in the UI
+  are lost. Overrides for the demo store live in `web/db/seeds.rb`, which runs
+  whenever the database is created, so those come back. To keep UI ones, move to a paid instance, attach a disk (e.g. at `/data`) and set
   `DATABASE_PATH=/data/production.sqlite3` and `CACHE_DIR=/data/cache`.
 
 ---
