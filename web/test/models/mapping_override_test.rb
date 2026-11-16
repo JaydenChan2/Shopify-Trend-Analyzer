@@ -8,6 +8,16 @@ class MappingOverrideTest < ActiveSupport::TestCase
     refute MappingOverride.new(term_key: "air fryer", article: "X").valid?
   end
 
+  test "seeds are valid, idempotent and never overwrite a merchant's own fix" do
+    MappingOverride.create!(term_key: "jellycat bashful bunny", ignored: true)
+    2.times { load Rails.root.join("db/seeds.rb") }
+
+    assert_equal "Owala", MappingOverride.for_term("Owala FreeSip Water Bottle").article
+    assert MappingOverride.for_term("giftcard").ignored?
+    assert MappingOverride.for_term("jellycat bashful bunny").ignored?, "existing override was overwritten"
+    assert_equal 8, MappingOverride.count
+  end
+
   test "article is required unless the term is ignored" do
     refute MappingOverride.new(term_key: "mug").valid?
     assert MappingOverride.new(term_key: "mug", ignored: true).valid?
