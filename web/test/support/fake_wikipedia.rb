@@ -4,12 +4,24 @@
 #   weekly_views(article) -> flat 3,000/week ("No surge detected"), or a custom
 #                            series for that article whose LAST value lands on the
 #                            last complete week (earlier weeks padded with 1,000)
+#   top_articles(date)    -> top.call(date) ([[title, views], ...]), [] by default
+#   wikidata_items(titles)-> { title => [canonical, qid] } for titles in `items`
 class FakeWikipedia
-  attr_reader :series_requests
+  attr_reader :series_requests, :top_requests
 
-  def initialize(search: {}, resolve: {}, series: {})
-    @search, @resolve, @series = search, resolve, series
+  def initialize(search: {}, resolve: {}, series: {}, top: ->(_date) { [] }, items: {})
+    @search, @resolve, @series, @top, @items = search, resolve, series, top, items
     @series_requests = []
+    @top_requests = []
+  end
+
+  def top_articles(date)
+    @top_requests << date
+    @top.call(date)
+  end
+
+  def wikidata_items(titles)
+    titles.filter_map { |t| [t, @items[t]] if @items[t] }.to_h
   end
 
   def search(term)
@@ -45,4 +57,11 @@ class DatedFakeWikipedia < FakeWikipedia
     @series_requests << article
     (WikipediaClient::FIRST_MONDAY..through).step(7).select { |m| m + 6 <= through }.map { |m| [m, rule.call(m)] }
   end
+end
+
+# Stands in for WikidataClient: { qid => kinds } for the items it knows.
+class FakeWikidata
+  def initialize(kinds = {}) = @kinds = kinds
+
+  def product_kinds(qids) = @kinds.slice(*qids)
 end

@@ -8,7 +8,8 @@ class ProductTrend
   # article:  the article whose views were actually used (can differ from mapping.article in replays)
   # recent:   the last 26 complete weekly view counts, for the card's sparkline
   # hindsight: for replays, whether the call came true (Hindsight::Result), or nil
-  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent, :hindsight,
+  # kinds:    Discover only: what Wikidata says it is, e.g. ["toy", "brand"]
+  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent, :hindsight, :kinds,
                    keyword_init: true) do
     def initialize(**fields)
       super

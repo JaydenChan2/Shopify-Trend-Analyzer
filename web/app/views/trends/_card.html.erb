@@ -7,6 +7,7 @@
   <div class="card-top">
     <span class="label tone-<%= label_tone(label) %>"><span class="label-dot"></span><%= label_text(row) %></span>
     <% if row.products.size > 1 %><span class="pill"><%= row.products.size %> products</span><% end %>
+    <% if row.kinds.present? %><span class="pill"><%= row.kinds.first %></span><% end %>
   </div>
 
   <h3 class="product-title"><%= row.products.first[:title] %></h3>
@@ -46,7 +47,7 @@
   <% else %>
   <dl class="mapping">
     <div>
-      <dt>Wikipedia page</dt>
+      <dt>Wikipedia</dt>
       <dd class="article"><%= link_to row.article, "https://en.wikipedia.org/wiki/#{ERB::Util.url_encode(row.article.tr(' ', '_'))}", rel: "noopener", target: "_blank" %></dd>
     </div>
   </dl>

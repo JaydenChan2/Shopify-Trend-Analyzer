@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   get "dashboard", to: "trends#index", as: :dashboard
   # One article's trend panel: a fragment for the in-page dialog, or a full page if opened directly.
   get "trend", to: "trends#show", as: :trend
+  get "discover", to: "discover#index", as: :discover
 
   # Merchant corrections to the product -> Wikipedia mapping.
   resources :mapping_overrides, only: %i[create destroy]

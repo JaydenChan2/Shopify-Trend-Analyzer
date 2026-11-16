@@ -9,16 +9,20 @@ not just a verdict.
 
 **Live demo:** https://spike-or-stay-ecsk.onrender.com, connected to a Shopify dev
 store of trend products. Today's view is mostly quiet (none of them is surging this
-week), so try a replay, which reruns the app as if it were that date:
+week), so try a replay, which reruns the app as if it were that date. Each replayed
+call now shows **hindsight**: whether it came true, checked on the year that followed.
 
-| Replay | What it shows |
-|---|---|
-| [Labubu, 2025-01-05](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2025-01-05) | Labubu: *Likely sustained*. Dubai chocolate and Jellycat: surge, too early to tell |
-| [Pop Mart, 2024-12-08](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2024-12-08) | Pop Mart: *Likely sustained*. Labubu: surge, too early to tell |
-| [Fidget spinner, 2017-06-12](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-06-12) | Fidget spinner: *Likely spike* |
-| [Air fryer, 2017-12-31](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-12-31) | Air fryer: *Likely sustained* |
+| Replay | What it shows | Hindsight |
+|---|---|---|
+| [Pop Mart, 2024-12-08](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2024-12-08) | Pop Mart: *Likely sustained*. Labubu: surge, too early to tell | Came true. **Not in the training data**, so a fair test |
+| [Labubu, 2025-01-05](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2025-01-05) | Labubu: *Likely sustained*. Dubai chocolate and Jellycat: surge, too early to tell | Came true, but Labubu was in the training data |
+| [Fidget spinner, 2017-06-12](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-06-12) | Fidget spinner: *Likely spike* | Came true (in the training data) |
+| [Air fryer, 2017-12-31](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-12-31) | Air fryer: *Likely sustained* | Came true (in the training data) |
 
-The 2024–25 trends weren't in the model's training data; the 2017 ones were.
+[**Discover**](https://spike-or-stay-ecsk.onrender.com/discover) finds surging products
+without a store: try [the fidget spinner week](https://spike-or-stay-ecsk.onrender.com/discover?as_of=2017-06-12),
+where it picks out the fidget spinner from Wikipedia's 1,000 most-read articles on its own.
+
 It's on Render's free plan, so the first visit after a quiet spell can take up to a minute to wake up.
 
 The model behind the labels was backtested first, on past trends with an
@@ -44,6 +48,7 @@ small, so the evidence is promising, not conclusive.
 |---|---|
 | `/` | **Landing page.** What it does, how it works in three steps, feature tour, "honest by design", FAQ. Static, so it loads instantly with no API calls. |
 | `/dashboard` | **The app**: the product cards described below. |
+| `/discover` | **Discover**: products surging on Wikipedia this week, store or not, with the same checks (see below). |
 | `/how-it-works` | **Methodology**: the onset and label rules, features, the full backtest table with confidence intervals, and limitations. |
 | `/trend?article=…` | One product's trend panel, as a standalone page (the dashboard opens the same panel in a dialog). |
 
@@ -58,6 +63,10 @@ The dashboard, top to bottom:
   - the reason and any warnings
   - the mapped term and article
   - a *Fix mapping* form
+- **Hindsight, on replays.** Each card shows whether its call came true, using the
+  backtest's own label rule on the year after the jump (data the call never saw),
+  and the banner tallies it ("1 of 1 call came true"). Trends the model was
+  trained on are flagged, and left out of a separate "fair" tally.
 - **A trend panel.** Clicking a card opens it:
   - two years of weekly views with a hover tooltip
   - the **3× "usual level" surge bar** and the **2,000/week floor** as reference
@@ -142,7 +151,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000 (landing page; the app is at /dashboard)
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 94 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 136 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
@@ -248,6 +257,49 @@ For each product:
 4. The app looks for an onset in the last 10 complete weeks and assigns one of the labels above.
 
 Products mapping to the same article are grouped into one row with a count.
+
+### 7. Hindsight (replays)
+
+On a replay, every call with a surge is checked against what happened next, using
+the backtest's label rule on the following year: sustained if weeks 26–51 after the
+onset average at least 25% of the peak week in weeks 0–25 (`Hindsight`; a parity
+test checks the Ruby rule against Python's `label_from_onset`).
+
+- **Came true / Missed** for *Likely sustained/spike* calls; *What happened* for
+  surges that were still too early to call.
+- **Too recent to check** until a full year of complete weeks exists.
+- **Can't check** when the article was merged into another before the year was up.
+- **Trained on this trend** when it's one of the 16 the model was fitted on. Those
+  checks aren't a fair test, and the banner reports a separate tally without them.
+
+The answer key reads data after `as_of`; the call itself never does.
+
+### 8. Discover
+
+`/discover` finds products without a store (`TrendingProducts`):
+
+1. **Candidates.** The 1,000 most-read English Wikipedia articles on each day of
+   the last complete week, summed. Only days up to the replay's last complete week
+   are read (tested).
+2. **Products only.** Wikidata says what each one is: an article is kept if its
+   type falls under toy, food, drink, clothing, cosmetics, home appliance,
+   electronics, tabletop game or brand, and not under software, video game, film,
+   media franchise or weapon (medication only if it isn't also food or drink).
+   "Game" and "product model" were tried and dropped: they pulled in the Premier
+   League, Formula One, bombers and missiles.
+3. **Same checks** as store products: live label, sparkline, trend panel and, on
+   replays, hindsight. Cards with a surge in the last 10 weeks are shown; the rest
+   are listed as "popular, no jump".
+
+Walking Wikidata's "subclass of" graph is slow (SPARQL property paths took 2–100s
+and sometimes failed), so the app climbs it one level at a time with simple
+lookups, caches each type's parents, and ships a snapshot of the graph
+(`web/db/wikidata_parents.json`, ~5,500 types). A cold scan takes about 9 seconds;
+a cached one is instant. Refresh the snapshot with `bin/rails discover:catalog`.
+
+On the 2017-06-12 replay, Discover finds the fidget spinner on its own and calls
+it a *Likely spike*. It also flags early, unconfirmed jumps in M&M's, Trader Joe's
+and jalebi, all of which faded.
 
 ---
 
@@ -359,6 +411,10 @@ Labels describe public interest, not this store's demand.
 - The Shopify token is cached in plain text under `web/tmp/` (gitignored), which
   is fine for a dev store, not for production.
 - Replays use today's Wikipedia search results to map products.
+- Discover only sees articles in Wikipedia's daily top 1,000 (roughly 10,000+
+  views a day), so it misses smaller surges a store could still care about. Its
+  product filter is a heuristic on Wikidata's types: expect some odd entries
+  (an Anglo-Saxon helmet once counted as clothing), and some products missed.
 - No user accounts. Locally, anyone who can open the app can edit mapping
   overrides. In production they're locked, or behind one shared password
   (`OVERRIDES_PASSWORD`), which is enough for a demo but isn't per-merchant access.

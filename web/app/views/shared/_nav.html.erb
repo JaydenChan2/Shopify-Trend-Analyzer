@@ -4,10 +4,10 @@
   <div class="nav-inner">
     <%= link_to root_path, class: "brand" do %><%= render "shared/logo" %><span>Spike or Stay</span><% end %>
     <nav class="nav-links" aria-label="Main">
+      <%= link_to "Discover", discover_path, class: ("is-active" if current_page?(discover_path)) %>
       <%= link_to "How it works", methodology_path, class: ("is-active" if current_page?(methodology_path)) %>
       <%= link_to "Results", methodology_path(anchor: "results") %>
       <%= link_to "Replays", root_path(anchor: "replays") %>
-      <%= link_to "FAQ", root_path(anchor: "faq") %>
     </nav>
     <div class="nav-actions">
       <% if @replay %><span class="pill pill-accent">Replay · <%= @as_of.strftime("%b %-d, %Y") %></span><% end %>
