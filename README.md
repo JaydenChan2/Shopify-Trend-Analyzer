@@ -7,6 +7,11 @@ data (Wikipedia pageviews) and labels each product's trend as **likely sustained
 or **likely spike**. Each label comes with a confidence and a plain-English reason,
 not just a verdict.
 
+**Live demo:** https://spike-or-stay-ecsk.onrender.com (sample products; try the
+[fidget spinner replay](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-06-12)
+or the [air fryer replay](https://spike-or-stay-ecsk.onrender.com/dashboard?as_of=2017-12-31)).
+It's on Render's free plan, so the first visit after a quiet spell can take up to a minute to wake up.
+
 The model behind the labels was backtested first, on past trends with an
 objective labelling rule. The results are below, with the sample size stated.
 In short: the model beats both baselines on every analysis, but **n = 16** is
