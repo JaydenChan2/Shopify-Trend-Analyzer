@@ -1,24 +1,9 @@
-# README
+# Spike or Stay: web app
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+See the [main README](../README.md) for what this does, how to run it, and how the labels work.
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```bash
+bundle install
+bin/rails server   # http://localhost:3000  (demo mode if Shopify credentials aren't set)
+bin/rails test
+```
