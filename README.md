@@ -27,7 +27,17 @@ small, so the evidence is promising, not conclusive.
 ## What a merchant sees
 
 One page: a table of products with the mapped search term, the Wikipedia article,
-a label, a confidence and the reasons.
+a label, a confidence and the reasons. Each row has a *Fix mapping* form.
+
+The page is built from Shopify's
+[Polaris web components](https://shopify.dev/docs/api/app-home), loaded from
+Shopify's CDN with one script tag in plain ERB views (no React, no build step).
+So it looks like the Shopify admin, and at phone width the table turns into cards.
+Shopify's docs only describe these components inside the embedded admin. I checked
+in a browser that they also render standalone without App Bridge, and that
+`s-text-field` and `s-button type="submit"` work with ordinary Rails forms. One
+quirk: `s-button` doesn't send its own `name`/`value`, so each form action has
+its own small form.
 
 | Label | Meaning |
 |---|---|
@@ -88,7 +98,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 64 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 68 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
@@ -289,5 +299,5 @@ Labels describe public interest, not this store's demand.
 - **More data:** a second interest source (e.g. Google Trends) and more labelled
   trends. More trends is the main thing needed to make the accuracy estimate meaningful.
 - **Gradual trends:** a separate detector for slow, steady growth.
-- **Product:** Polaris UI, weekly digest emails, OAuth install flow for a public
-  app, deployment.
+- **Product:** embed in Shopify admin (App Bridge + session tokens), weekly
+  digest emails, OAuth install flow for a public app, deployment.

@@ -1,29 +1,14 @@
-/* Plain styles for v0 (Polaris later). */
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 2rem auto; max-width: 1200px; padding: 0 1rem; color: #1a1a1a; background: #fff; }
-h1 { margin-bottom: 0.2rem; }
-.subtitle, .muted { color: #6b6b6b; }
-.muted { font-size: 0.85em; }
-.banner { padding: 0.6rem 0.9rem; border-radius: 6px; margin: 0.6rem 0; }
-.banner.replay { background: #fff4d6; border: 1px solid #e5c76b; }
-.banner.info { background: #eef4ff; border: 1px solid #b9cdf5; }
-.banner.warning { background: #fff0e6; border: 1px solid #f0b48a; }
-.banner.error { background: #fde8e8; border: 1px solid #f0a0a0; }
-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-th, td { text-align: left; vertical-align: top; padding: 0.6rem; border-bottom: 1px solid #e6e6e6; }
-th { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.03em; color: #555; }
-.label { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.85em; white-space: nowrap; background: #eee; }
-.label-likely-sustained { background: #d9f2e3; color: #11602f; }
-.label-likely-spike { background: #fde2d6; color: #8a2a06; }
-.label-surge-detected-too-early-to-tell, .label-possible-surge-unconfirmed { background: #fff1c2; color: #6b5200; }
-.label-error { background: #fde8e8; color: #8a1111; }
-footer { margin-top: 2rem; font-size: 0.85em; color: #6b6b6b; }
-.label-not-enough-data, .label-not-mapped { background: #f0f0f0; color: #666; }
-.note { margin-top: 0.35rem; font-size: 0.85em; color: #8a5a00; }
-.count { color: #6b6b6b; font-size: 0.85em; }
+/* Polaris web components style themselves. This file only covers the native bits
+   Polaris has no component for (the <details> fold-outs) and the page background. */
+body {
+  margin: 0;
+  background: #f1f1f1; /* Shopify admin page background */
+  font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  color: #303030;
+}
 details summary { cursor: pointer; }
-details ul { margin: 0.3rem 0 0 1rem; padding: 0; font-size: 0.9em; }
-.banner.success { background: #e3f5ea; border: 1px solid #9fd5b3; }
-.label-not-tracked { background: #f0f0f0; color: #888; }
-details.fix { margin-top: 0.4rem; font-size: 0.85em; }
-.fix-form { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: end; margin-top: 0.4rem; }
-.fix-form label { display: flex; flex-direction: column; gap: 0.2rem; }
+details.group ul { margin: 0.3rem 0 0 1rem; padding: 0; }
+details.fix summary { color: #005bd3; font-size: 12px; }  /* Polaris link blue */
+details.fix[open] { padding: 0.5rem 0; }
+form { margin: 0; }

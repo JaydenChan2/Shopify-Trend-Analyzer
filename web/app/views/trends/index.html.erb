@@ -1,90 +1,98 @@
-<header>
-  <h1>Spike or Stay</h1>
-  <p class="subtitle">Given an abrupt surge in public interest, will it last? Interest = Wikipedia pageviews.</p>
+<%# The one page, built from Polaris web components (https://shopify.dev/docs/api/app-home). %>
+<s-page heading="Spike or Stay" inlineSize="large">
+  <s-stack gap="base">
+    <s-paragraph color="subdued">
+      Given an abrupt surge in public interest, will it last? Interest = Wikipedia pageviews.
+    </s-paragraph>
 
-  <% if @replay %>
-    <div class="banner replay">
-      <strong>Replay as of <%= @as_of.strftime("%B %-d, %Y") %>.</strong>
-      Only data from complete weeks up to <%= LiveLabel.last_complete_week_end(@as_of) %> is used.
-      <%= link_to "Back to today", root_path %>
-    </div>
-  <% end %>
-  <% if notice %><div class="banner success"><%= notice %></div><% end %>
-  <% if alert %><div class="banner error"><%= alert %></div><% end %>
-  <% if @as_of_error %><div class="banner warning"><%= @as_of_error %></div><% end %>
-  <% if @source&.mode == :demo %>
-    <div class="banner info">Demo mode: showing sample products (Shopify credentials not set).</div>
-  <% elsif @source&.error %>
-    <div class="banner error">Couldn't load products from <%= @source.shop %>: <%= @source.error %></div>
-  <% elsif @source %>
-    <div class="banner info">Connected to <strong><%= @source.shop %></strong>: <%= pluralize(@source.products.size, "product") %>.</div>
-  <% end %>
-  <% if @fatal_error %><div class="banner error"><%= @fatal_error %></div><% end %>
-</header>
+    <% if @replay %>
+      <s-banner tone="info" heading="Replay as of <%= @as_of.strftime("%B %-d, %Y") %>">
+        Only data from complete weeks up to <%= LiveLabel.last_complete_week_end(@as_of) %> is used.
+        <s-link href="<%= root_path %>">Back to today</s-link>
+      </s-banner>
+    <% end %>
+    <% if notice %><s-banner tone="success"><%= notice %></s-banner><% end %>
+    <% if alert %><s-banner tone="critical"><%= alert %></s-banner><% end %>
+    <% if @as_of_error %><s-banner tone="warning"><%= @as_of_error %></s-banner><% end %>
+    <% if @fatal_error %><s-banner tone="critical"><%= @fatal_error %></s-banner><% end %>
+    <% if @source&.mode == :demo %>
+      <s-banner tone="info">Demo mode: showing sample products (Shopify credentials not set).</s-banner>
+    <% elsif @source&.error %>
+      <s-banner tone="critical">Couldn't load products from <%= @source.shop %>: <%= @source.error %></s-banner>
+    <% elsif @source %>
+      <s-banner tone="info">Connected to <s-text type="strong"><%= @source.shop %></s-text>: <%= pluralize(@source.products.size, "product") %>.</s-banner>
+    <% end %>
 
-<% if @rows.any? %>
-  <table>
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Mapped term</th>
-        <th>Wikipedia article</th>
-        <th>Label</th>
-        <th>Confidence</th>
-        <th>Reasons</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @rows.each do |row| %>
-        <tr>
-          <td>
-            <% if row.products.size == 1 %>
-              <%= row.products.first[:title] %>
-            <% else %>
-              <details>
-                <summary><%= row.products.first[:title] %> <span class="count">+<%= row.products.size - 1 %> more</span></summary>
-                <ul><% row.products.drop(1).each do |product| %><li><%= product[:title] %></li><% end %></ul>
-              </details>
+    <% if @rows.any? %>
+      <s-paragraph class="summary"><s-text type="strong">Products:</s-text> <%= summary_line(@rows) %></s-paragraph>
+      <s-section padding="none">
+        <s-table>
+          <s-table-header-row>
+            <s-table-header listSlot="primary">Product</s-table-header>
+            <s-table-header listSlot="secondary">Mapped term</s-table-header>
+            <s-table-header>Wikipedia article</s-table-header>
+            <s-table-header listSlot="inline">Label</s-table-header>
+            <s-table-header format="numeric">Confidence</s-table-header>
+            <s-table-header>Reasons</s-table-header>
+          </s-table-header-row>
+          <s-table-body>
+            <% @rows.each do |row| %>
+              <s-table-row>
+                <s-table-cell>
+                  <% if row.products.size == 1 %>
+                    <%= row.products.first[:title] %>
+                  <% else %>
+                    <details class="group">
+                      <summary><%= row.products.first[:title] %> <s-text color="subdued">+<%= row.products.size - 1 %> more</s-text></summary>
+                      <ul><% row.products.drop(1).each do |product| %><li><%= product[:title] %></li><% end %></ul>
+                    </details>
+                  <% end %>
+                </s-table-cell>
+                <s-table-cell>
+                  <% row.mappings.each do |mapping| %>
+                    <div>
+                      <%= mapping.term %>
+                      <s-text color="subdued">(from <%= mapping.source %><%= ", override" if mapping.override_id %>)</s-text>
+                    </div>
+                  <% end %>
+                </s-table-cell>
+                <s-table-cell><%= row.article || "—" %></s-table-cell>
+                <% if row.error %>
+                  <s-table-cell><s-badge tone="critical">Error</s-badge></s-table-cell>
+                  <s-table-cell>—</s-table-cell>
+                  <s-table-cell><s-text color="subdued"><%= row.error %></s-text></s-table-cell>
+                <% else %>
+                  <s-table-cell><s-badge tone="<%= label_tone(row.result.label) %>"><%= row.result.label %></s-badge></s-table-cell>
+                  <s-table-cell><%= row.result.confidence ? number_to_percentage(row.result.confidence * 100, precision: 0) : "—" %></s-table-cell>
+                  <s-table-cell>
+                    <s-stack gap="small-200">
+                      <s-paragraph>
+                        <%= row.result.reason %>
+                        <% if row.result.onset_week %><s-text color="subdued">Surge began week of <%= row.result.onset_week %>.</s-text><% end %>
+                      </s-paragraph>
+                      <% row.notes.each do |note| %><s-paragraph tone="caution" class="note"><%= note %></s-paragraph><% end %>
+                      <% row.mappings.each do |mapping| %><%= render "fix_mapping", mapping: mapping %><% end %>
+                    </s-stack>
+                  </s-table-cell>
+                <% end %>
+              </s-table-row>
             <% end %>
-          </td>
-          <td>
-            <% row.mappings.each do |mapping| %>
-              <div>
-                <%= mapping.term %>
-                <span class="muted">(from <%= mapping.source %><%= ", override" if mapping.override_id %>)</span>
-              </div>
-            <% end %>
-          </td>
-          <td><%= row.article || "—" %></td>
-          <% if row.error %>
-            <td><span class="label label-error">Error</span></td>
-            <td>—</td>
-            <td class="muted"><%= row.error %></td>
-          <% else %>
-            <td><span class="label label-<%= row.result.label.parameterize %>"><%= row.result.label %></span></td>
-            <td><%= row.result.confidence ? number_to_percentage(row.result.confidence * 100, precision: 0) : "—" %></td>
-            <td>
-              <%= row.result.reason %>
-              <% if row.result.onset_week %><span class="muted">Surge began week of <%= row.result.onset_week %>.</span><% end %>
-              <% row.notes.each do |note| %><div class="note">⚠ <%= note %></div><% end %>
-              <% row.mappings.each do |mapping| %><%= render "fix_mapping", mapping: mapping %><% end %>
-            </td>
-          <% end %>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% end %>
+          </s-table-body>
+        </s-table>
+      </s-section>
+    <% end %>
 
-<footer>
-  <p>
     <%# Numbers from backtest/results/step_d_results.md, analysis (a). Update if the model is retrained. %>
-    Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends:
-    leave-one-out accuracy 75% (95% CI 51–90%) vs 62% for "still rising in week 6".
-    The difference is within noise at this sample size. Confidence is the model's probability, not a guarantee.
-  </p>
-  <p>Gradual trends never trigger a 3x surge, so they show as "No surge detected".
-    Try a replay: <%= link_to "?as_of=2017-06-12", root_path(as_of: "2017-06-12") %> (fidget spinner, spike) or
-    <%= link_to "?as_of=2017-12-31", root_path(as_of: "2017-12-31") %> (air fryer, sustained).
-    Replays of trends the model was trained on are in-sample, so they demo the pipeline rather than prove accuracy.</p>
-</footer>
+    <s-paragraph color="subdued">
+      Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends:
+      leave-one-out accuracy 75% (95% CI 51–90%) vs 62% for "still rising in week 6".
+      The difference is within noise at this sample size. Confidence is the model's probability, not a guarantee.
+    </s-paragraph>
+    <s-paragraph color="subdued">
+      Gradual trends never trigger a 3x surge, so they show as "No surge detected".
+      Try a replay: <s-link href="<%= root_path(as_of: "2017-06-12") %>">?as_of=2017-06-12</s-link> (fidget spinner, spike) or
+      <s-link href="<%= root_path(as_of: "2017-12-31") %>">?as_of=2017-12-31</s-link> (air fryer, sustained).
+      Replays of trends the model was trained on are in-sample, so they demo the pipeline rather than prove accuracy.
+    </s-paragraph>
+  </s-stack>
+</s-page>
