@@ -6,7 +6,9 @@ class ProductTrend
   # mappings: every distinct search term in the group, e.g. "snowboard" plus an
   #           overridden "The Minimal Snowboard", so each gets its own fix/remove form
   # article:  the article whose views were actually used (can differ from mapping.article in replays)
-  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, keyword_init: true) do
+  # recent:   the last 26 complete weekly view counts, for the card's sparkline
+  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent,
+                   keyword_init: true) do
     def initialize(**fields)
       super
       self.mappings ||= [mapping]
@@ -51,7 +53,7 @@ class ProductTrend
     article, notes = series_article(mapping)
     weeks = @wikipedia.weekly_views(article, through: LiveLabel.last_complete_week_end(@as_of))
     Row.new(products: products, mapping: mapping, article: article, notes: notes,
-            result: LiveLabel.call(weeks, as_of: @as_of))
+            result: LiveLabel.call(weeks, as_of: @as_of), recent: weeks.last(26).map(&:last))
   rescue WikipediaClient::MissingContact
     raise # config problem: shown once at the top of the page, not per row
   rescue WikipediaClient::Error, Net::OpenTimeout, Net::ReadTimeout, SocketError => e

@@ -1,0 +1,10 @@
+<%# Standalone trend page (opened directly, or without JavaScript). The in-page dialog fetches only _detail. %>
+<% if request.xhr? %>
+  <%= render "detail", detail: @detail %>
+<% else %>
+  <%= render "topbar" %>
+  <main class="container detail-page">
+    <p><%= link_to "‹ All products", root_path(as_of: (@replay ? params[:as_of] : nil)), class: "back-link" %></p>
+    <div class="detail-card"><%= render "detail", detail: @detail %></div>
+  </main>
+<% end %>

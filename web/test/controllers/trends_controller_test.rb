@@ -46,6 +46,44 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".label.tone-neutral", minimum: 1
   end
 
+  test "cards carry a filter group, a sparkline and a link to the trend panel" do
+    get root_path
+    assert_select ".product-card[data-group]", minimum: 1
+    assert_select ".product-card svg.sparkline", minimum: 1
+    assert_select ".product-card a.card-open[href^=?]", "/trend?"
+    assert_select ".stat[data-filter=surge]"
+    assert_select "dialog.trend-dialog"
+  end
+
+  # The trend panel
+  SURGE = [1000] * 40 + [5000, 6000, 7000, 7500, 7000, 6800, 6500]
+
+  test "trend panel for the dialog is just the fragment, with chart and explanation" do
+    TrendsController.wikipedia_client = FakeWikipedia.new(series: { "Air fryer" => SURGE })
+    get trend_path(article: "Air fryer", product: "5.8qt Basket Air Fryer"), xhr: true
+    assert_response :success
+    assert_select "header.topbar", count: 0
+    assert_select "h2", "5.8qt Basket Air Fryer"
+    assert_select "svg.chart-svg[data-points]"
+    assert_select ".chart .onset"
+    assert_select ".chart .feature-window"
+    assert_select ".explain .contrib li", 4
+  end
+
+  test "trend panel opened directly is a full page" do
+    get trend_path(article: "Matcha")
+    assert_response :success
+    assert_select "header.topbar"
+    assert_select "a.back-link"
+    assert_select "svg.chart-svg"
+    assert_select ".explain", count: 0 # flat series: nothing scored
+  end
+
+  test "trend panel replay keeps as_of and says so" do
+    get trend_path(article: "Matcha", as_of: "2017-06-12"), xhr: true
+    assert_select "p.hint", /Replay as of June 12, 2017/
+  end
+
   test "an ignored term shows as Not tracked" do
     MappingOverride.create!(term_key: "t-shirt", ignored: true)
     get root_path

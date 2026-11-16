@@ -1,0 +1,49 @@
+<%# SVG trend chart. Geometry from TrendChart; hover tooltip in app.js reads data-points. %>
+<figure class="chart">
+  <svg class="chart-svg" viewBox="0 0 <%= TrendChart::WIDTH %> <%= TrendChart::HEIGHT %>" role="img"
+       aria-label="Weekly Wikipedia views for <%= detail.article %>"
+       data-points="<%= chart.hover_points.to_json %>">
+    <defs>
+      <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="currentColor" stop-opacity="0.35"/>
+        <stop offset="1" stop-color="currentColor" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <% chart.y_ticks.each do |tick| %>
+      <line class="grid" x1="<%= TrendChart::PAD[:left] %>" x2="<%= TrendChart::WIDTH - TrendChart::PAD[:right] %>" y1="<%= chart.y(tick).round(1) %>" y2="<%= chart.y(tick).round(1) %>"/>
+      <text class="axis" x="<%= TrendChart::PAD[:left] - 8 %>" y="<%= chart.y(tick).round(1) + 4 %>" text-anchor="end"><%= compact_views(tick) %></text>
+    <% end %>
+    <% chart.x_ticks.each do |x, text| %>
+      <text class="axis" x="<%= x.round(1) %>" y="<%= TrendChart::HEIGHT - 8 %>" text-anchor="middle"><%= text %></text>
+    <% end %>
+
+    <% if (window = chart.feature_window) %>
+      <rect class="feature-window" x="<%= window[0].round(1) %>" y="<%= TrendChart::PAD[:top] %>"
+            width="<%= [window[1] - window[0], 2].max.round(1) %>" height="<%= chart.baseline_y - TrendChart::PAD[:top] %>"/>
+    <% end %>
+
+    <line class="ref ref-floor" x1="<%= TrendChart::PAD[:left] %>" x2="<%= TrendChart::WIDTH - TrendChart::PAD[:right] %>" y1="<%= chart.y(detail.floor).round(1) %>" y2="<%= chart.y(detail.floor).round(1) %>"/>
+    <% if detail.surge_bar %>
+      <line class="ref ref-surge" x1="<%= TrendChart::PAD[:left] %>" x2="<%= TrendChart::WIDTH - TrendChart::PAD[:right] %>" y1="<%= chart.y(detail.surge_bar).round(1) %>" y2="<%= chart.y(detail.surge_bar).round(1) %>"/>
+    <% end %>
+
+    <polygon class="series-area" points="<%= chart.area_points %>"/>
+    <polyline class="series-line" points="<%= chart.line_points %>"/>
+
+    <% if chart.onset_x %>
+      <line class="onset" x1="<%= chart.onset_x.round(1) %>" x2="<%= chart.onset_x.round(1) %>" y1="<%= TrendChart::PAD[:top] %>" y2="<%= chart.baseline_y %>"/>
+      <text class="onset-label" x="<%= chart.onset_x.round(1) + 6 %>" y="<%= TrendChart::PAD[:top] + 12 %>">Onset</text>
+    <% end %>
+
+    <line class="hover-line" y1="<%= TrendChart::PAD[:top] %>" y2="<%= chart.baseline_y %>" visibility="hidden"/>
+    <circle class="hover-dot" r="4" visibility="hidden"/>
+  </svg>
+  <div class="chart-tooltip" hidden></div>
+  <figcaption class="legend">
+    <span><i class="key key-series"></i>Weekly views</span>
+    <% if detail.surge_bar %><span><i class="key key-surge"></i>Surge bar (3× usual)</span><% end %>
+    <span><i class="key key-floor"></i><%= number_with_delimiter(detail.floor) %>/week floor</span>
+    <% if chart.feature_window %><span><i class="key key-window"></i>6 weeks the model reads</span><% end %>
+  </figcaption>
+</figure>

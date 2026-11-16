@@ -26,18 +26,37 @@ small, so the evidence is promising, not conclusive.
 
 ## What a merchant sees
 
-One page: summary cards (surges, quiet, not enough data, not mapped), then one
-card per product (or group of products sharing an article). Each card shows a
-label with its confidence ("Likely sustained · 67%"), the reason, any warnings,
-the mapped term and Wikipedia article, and a *Fix mapping* form.
+One page, top to bottom:
+
+- **Summary cards** (surges, quiet, not enough data, not mapped). They double as
+  **filters**: click one to show only those products.
+- **One card per product**, or per group of products sharing an article. Each
+  card shows:
+  - a label with its confidence ("Likely sustained · 67%")
+  - a **sparkline** of the last 26 weeks
+  - the reason and any warnings
+  - the mapped term and article
+  - a *Fix mapping* form
+- **A trend panel.** Clicking a card opens it:
+  - two years of weekly views with a hover tooltip
+  - the **3× "usual level" surge bar** and the **2,000/week floor** as reference
+    lines
+  - the **onset** marked, with the **6 weeks the model reads** shaded
+  - for scored products, **how the model decided**: each feature's push toward
+    *sustained* or *spike* (the logistic regression's per-feature contribution),
+    adding up to the shown probability
 
 The look is a dark storefront style modelled on the
 [ClaudeCMS store demo](https://claudecms.com/store-demo/): black page, rounded
 near-black cards, system font, heavy two-tone headings, pill tags and an orange
-accent. The colours and type sizes were measured from that page, and the CSS is
-written from scratch in one file (`web/app/assets/stylesheets/application.css`).
-It's plain ERB and CSS, with no front-end framework or build step. The card grid
-stacks to one column on phones.
+accent. The colours and type sizes were measured from that page; the CSS is
+written from scratch. On top of that: a soft hero glow, cards that lift on hover,
+and an animated dialog. The charts are SVG built in Ruby (`TrendChart`), and
+interactivity is one small plain-JS file (`web/app/assets/javascripts/app.js`).
+There's no front-end framework or build step.
+
+Everything works without JavaScript too: each card links to a standalone
+`/trend` page with the same panel.
 
 | Label | Meaning |
 |---|---|
@@ -98,7 +117,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 69 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 85 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.

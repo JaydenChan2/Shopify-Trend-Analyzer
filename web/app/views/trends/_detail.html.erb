@@ -1,0 +1,62 @@
+<%# The trend panel: header, key numbers, chart, and (when scored) how the model decided. %>
+<% result = detail.result %>
+<% tone = label_tone(result.label) %>
+<article class="detail tone-<%= tone %>">
+  <header class="detail-head">
+    <div class="detail-title">
+      <p class="eyebrow">
+        Wikipedia ·
+        <%= link_to detail.article, "https://en.wikipedia.org/wiki/#{ERB::Util.url_encode(detail.article.tr(' ', '_'))}",
+                    target: "_blank", rel: "noopener" %>
+      </p>
+      <h2><%= @product_title %></h2>
+    </div>
+    <span class="label tone-<%= tone %>"><span class="label-dot"></span><%= result.label %><%= " · #{percent(result.confidence)}" if result.confidence %></span>
+  </header>
+
+  <p class="detail-reason"><%= result.reason %></p>
+
+  <% unless detail.empty? %>
+    <dl class="detail-stats">
+      <div><dt>Latest week</dt><dd><%= compact_views(detail.values.last) %></dd></div>
+      <div><dt>Usual level</dt><dd><%= detail.baseline ? compact_views(detail.baseline) : "—" %></dd><span class="hint">26-week median</span></div>
+      <div><dt>Surge bar</dt><dd><%= detail.surge_bar ? compact_views(detail.surge_bar) : "—" %></dd><span class="hint">3× usual</span></div>
+      <div><dt>2-year peak</dt><dd><%= compact_views(detail.values.last(TrendChart::WINDOW_WEEKS).max) %></dd></div>
+    </dl>
+    <%= render "chart", chart: detail.chart, detail: detail %>
+  <% else %>
+    <p class="empty-chart">No Wikipedia views to chart up to this date.</p>
+  <% end %>
+
+  <% if detail.scored? %>
+    <section class="explain">
+      <h3>How the model decided</h3>
+      <p class="hint">Each bar is how much one early-weeks feature pushed the prediction, compared with an average past trend.</p>
+      <% max = detail.contributions.map { |c| c[:contribution].abs }.max.to_f.nonzero? || 1.0 %>
+      <ul class="contrib">
+        <% detail.contributions.each do |c| %>
+          <% name, hint = TrendsHelper::FEATURE_NAMES.fetch(c[:name]) %>
+          <% width = (c[:contribution].abs / max * 50).round(1) %>
+          <li>
+            <div class="contrib-name"><strong><%= name %></strong><span class="hint"><%= hint %></span></div>
+            <div class="contrib-bar" aria-hidden="true">
+              <span class="<%= c[:contribution] >= 0 ? 'push-sustained' : 'push-spike' %>"
+                    style="width: <%= width %>%; <%= c[:contribution] >= 0 ? 'left: 50%' : "right: 50%" %>"></span>
+            </div>
+            <div class="contrib-value"><%= format("%+.2f", c[:contribution]) %></div>
+          </li>
+        <% end %>
+      </ul>
+      <p class="hint contrib-axis"><span>← toward spike</span><span>toward sustained →</span></p>
+      <p class="hint">
+        Starting point <%= format("%+.2f", TrendModel.instance.intercept) %>, plus these pushes, gives
+        <strong><%= percent(detail.probability) %></strong> chance of sustained.
+        Trained on <%= TrendModel.instance.trained_on["n"] %> past trends, so read it as a signal, not a guarantee.
+      </p>
+    </section>
+  <% end %>
+
+  <% if @replay %>
+    <p class="hint">Replay as of <%= @as_of.strftime("%B %-d, %Y") %>: weeks after it aren't shown or used.</p>
+  <% end %>
+</article>

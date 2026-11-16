@@ -13,6 +13,19 @@ module TrendsHelper
 
   SURGE_LABELS = LABEL_TONES.keys.first(4).freeze
 
+  # Stat cards double as filters: each label belongs to one group.
+  GROUPS = {
+    "surge" => "Surges", "quiet" => "Quiet", "nodata" => "Not enough data",
+    "unmapped" => "Not mapped", "error" => "Errors"
+  }.freeze
+
+  FEATURE_NAMES = {
+    "growth" => ["Growth", "weeks 3–5 vs weeks 0–2"],
+    "acceleration" => ["Acceleration", "is growth speeding up or slowing?"],
+    "peak_sharpness" => ["Peak sharpness", "how spiky the 6 weeks are"],
+    "volatility" => ["Volatility", "how jumpy week to week"]
+  }.freeze
+
   def label_tone(label)
     LABEL_TONES.fetch(label, "neutral")
   end
@@ -21,24 +34,51 @@ module TrendsHelper
     row.error ? "Error" : row.result.label
   end
 
+  def label_group(label)
+    case label
+    when *SURGE_LABELS then "surge"
+    when "No surge detected" then "quiet"
+    when "Not enough data" then "nodata"
+    when "Error" then "error"
+    else "unmapped"
+    end
+  end
+
   # "Likely sustained · 67%": confidence lives inside the label pill.
   def label_text(row)
     return "Error" if row.error
 
     confidence = row.result.confidence
-    confidence ? "#{row.result.label} · #{number_to_percentage(confidence * 100, precision: 0)}" : row.result.label
+    confidence ? "#{row.result.label} · #{percent(confidence)}" : row.result.label
   end
 
-  # Counts for the stat cards, in display order. Errors only appear if there are any.
+  def percent(fraction)
+    number_to_percentage(fraction * 100, precision: 0)
+  end
+
+  # { "surge" => ["Surges", 2], ... } for the stat cards. Errors only appear if there are any.
   def summary_counts(rows)
-    labels = rows.map { |row| row_label(row) }
-    counts = {
-      "Surges" => labels.count { |l| SURGE_LABELS.include?(l) },
-      "Quiet" => labels.count("No surge detected"),
-      "Not enough data" => labels.count("Not enough data"),
-      "Not mapped" => labels.count { |l| ["Not mapped", "Not tracked"].include?(l) }
-    }
-    errors = labels.count("Error")
-    errors.positive? ? counts.merge("Errors" => errors) : counts
+    groups = rows.map { |row| label_group(row_label(row)) }
+    GROUPS.filter_map do |key, name|
+      count = groups.count(key)
+      [key, [name, count]] unless key == "error" && count.zero?
+    end.to_h
+  end
+
+  # Tiny inline SVG of recent weekly views for a card.
+  def sparkline(values, width: 240, height: 44)
+    return "" if values.blank? || values.max.to_i.zero? || values.size < 2
+
+    max = values.max.to_f
+    step = width.to_f / (values.size - 1)
+    points = values.each_with_index.map { |v, i| "#{(i * step).round(1)},#{(height - 3 - v / max * (height - 6)).round(1)}" }
+    tag.svg(class: "sparkline", viewBox: "0 0 #{width} #{height}", preserveAspectRatio: "none", "aria-hidden": true) do
+      tag.polygon(points: "0,#{height} #{points.join(' ')} #{width},#{height}", class: "spark-area") +
+        tag.polyline(points: points.join(" "), class: "spark-line")
+    end
+  end
+
+  def compact_views(views)
+    TrendChart.compact(views)
   end
 end

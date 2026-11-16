@@ -32,6 +32,18 @@ class TrendModel
     1.0 / (1.0 + Math.exp(-(@intercept + weighted_sum)))
   end
 
+  # Per-feature push on the logit, for the "How the model decided" chart.
+  # intercept + sum(contribution) is exactly the logit inside #probability.
+  # Positive pushes toward "sustained", negative toward "spike".
+  def contributions(feature_values)
+    @features.each_with_index.map do |name, i|
+      value = feature_values.fetch(name)
+      { name: name, value: value, average: @means[i], contribution: @coefficients[i] * (value - @means[i]) / @scales[i] }
+    end
+  end
+
+  attr_reader :intercept
+
   # Average value of a feature across the training trends (used to phrase reasons).
   def average(name)
     @means.fetch(@features.index(name))

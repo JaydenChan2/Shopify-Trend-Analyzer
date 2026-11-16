@@ -17,6 +17,18 @@ class TrendsController < ApplicationController
     @rows = []
   end
 
+  # GET /trend?article=Air+fryer&product=Air+Fryer&as_of=2017-12-31
+  def show
+    @as_of, @as_of_error = parse_as_of(params[:as_of])
+    @replay = params[:as_of].present? && @as_of_error.nil?
+    @product_title = params[:product].presence || params[:article]
+    @detail = TrendDetail.build(params.require(:article), as_of: @as_of,
+                                wikipedia: self.class.wikipedia_client || WikipediaClient.new)
+    render layout: !request.xhr? # the dialog fetches just the panel
+  rescue WikipediaClient::MissingContact, WikipediaClient::Error => e
+    render plain: e.message, status: :bad_gateway
+  end
+
   private
 
   # Returns [date, error_message_or_nil]. Falls back to today on bad input.

@@ -22,7 +22,23 @@ class TrendsHelperTest < ActionView::TestCase
 
   test "summary counts group labels and only show errors when present" do
     rows = [row("Likely spike"), row("No surge detected"), row("No surge detected"), row("Not tracked")]
-    assert_equal({ "Surges" => 1, "Quiet" => 2, "Not enough data" => 0, "Not mapped" => 1 }, summary_counts(rows))
-    assert_equal 1, summary_counts(rows + [row(nil, error: "x")])["Errors"]
+    assert_equal({ "surge" => ["Surges", 1], "quiet" => ["Quiet", 2], "nodata" => ["Not enough data", 0],
+                   "unmapped" => ["Not mapped", 1] }, summary_counts(rows))
+    assert_equal ["Errors", 1], summary_counts(rows + [row(nil, error: "x")])["error"]
+  end
+
+  test "every label belongs to one filter group" do
+    assert_equal "surge", label_group("Possible surge (unconfirmed)")
+    assert_equal "quiet", label_group("No surge detected")
+    assert_equal "nodata", label_group("Not enough data")
+    assert_equal "unmapped", label_group("Not tracked")
+  end
+
+  test "sparkline draws one point per week and skips empty series" do
+    svg = sparkline([1, 2, 3, 4])
+    assert_includes svg, "<polyline"
+    assert_equal 4, svg[/polyline points="([^"]+)"/, 1].split.size
+    assert_equal "", sparkline([0, 0, 0])
+    assert_equal "", sparkline([])
   end
 end

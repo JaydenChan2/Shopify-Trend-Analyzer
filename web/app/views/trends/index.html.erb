@@ -1,21 +1,11 @@
-<%# The one page. Dark storefront-style look; styles in app/assets/stylesheets/application.css. %>
-<header class="topbar">
-  <div class="topbar-inner">
-    <%= link_to "Spike or Stay", root_path, class: "wordmark" %>
-    <div class="topbar-status">
-      <% if @replay %><span class="pill pill-accent">Replay · <%= @as_of.strftime("%b %-d, %Y") %></span><% end %>
-      <% if @source&.mode == :demo %>
-        <span class="pill">Demo mode</span>
-      <% elsif @source&.shop %>
-        <span class="pill"><%= @source.shop %></span>
-      <% end %>
-    </div>
-  </div>
-</header>
+<%# The one page. Styles in app/assets/stylesheets/application.css, behaviour in app/assets/javascripts/app.js. %>
+<%= render "topbar" %>
 
 <main class="container">
   <section class="hero">
-    <h1>Spike or Stay.</h1>
+    <div class="hero-glow" aria-hidden="true"></div>
+    <p class="eyebrow">Trend intelligence for your catalog</p>
+    <h1>Spike <span class="hero-or">or</span> Stay.</h1>
     <p class="lede">Given an abrupt surge in public interest, will it last?</p>
   </section>
 
@@ -35,28 +25,31 @@
       <div class="banner info">Demo mode: showing sample products (Shopify credentials not set).</div>
     <% elsif @source&.error %>
       <div class="banner critical">Couldn't load products from <%= @source.shop %>: <%= @source.error %></div>
-    <% elsif @source %>
-      <div class="banner info">Connected to <strong><%= @source.shop %></strong>: <%= pluralize(@source.products.size, "product") %>.</div>
     <% end %>
   </div>
 
   <% if @rows.any? %>
-    <section class="stats" aria-label="Summary">
-      <% summary_counts(@rows).each do |name, count| %>
-        <div class="stat">
+    <section class="stats" aria-label="Filter by label">
+      <% summary_counts(@rows).each do |key, (name, count)| %>
+        <button type="button" class="stat stat-<%= key %>" data-filter="<%= key %>" aria-pressed="false" <%= "disabled" if count.zero? %>>
           <span class="stat-number"><%= count %></span>
           <span class="stat-label"><%= name %></span>
-        </div>
+        </button>
       <% end %>
     </section>
 
     <section>
-      <h2 class="section-title">Products. <span>What public interest says about each one.</span></h2>
+      <div class="section-head">
+        <h2 class="section-title">Products. <span>What public interest says about each one.</span></h2>
+        <p class="filter-status" hidden>Showing <strong data-filter-name></strong> · <button type="button" class="link-button" data-filter-clear>Show all</button></p>
+      </div>
       <div class="product-grid">
         <% @rows.each do |row| %>
-          <article class="product-card">
+          <% label = row_label(row) %>
+          <% chartable = row.article && !row.error && row.recent.present? %>
+          <article class="product-card tone-<%= label_tone(label) %><%= ' is-clickable' if chartable %>" data-group="<%= label_group(label) %>">
             <div class="card-top">
-              <span class="label tone-<%= label_tone(row_label(row)) %>"><%= label_text(row) %></span>
+              <span class="label tone-<%= label_tone(label) %>"><span class="label-dot"></span><%= label_text(row) %></span>
               <% if row.products.size > 1 %><span class="pill"><%= row.products.size %> products</span><% end %>
             </div>
 
@@ -67,6 +60,8 @@
                 <ul><% row.products.drop(1).each do |product| %><li><%= product[:title] %></li><% end %></ul>
               </details>
             <% end %>
+
+            <% if chartable %><div class="spark-wrap"><%= sparkline(row.recent) %><span class="spark-caption">26 weeks</span></div><% end %>
 
             <% if row.error %>
               <p class="reason"><%= row.error %></p>
@@ -91,12 +86,19 @@
               </div>
             </dl>
 
-            <% row.mappings.each do |mapping| %>
-              <%= render "fix_mapping", mapping: mapping, show_term: row.mappings.size > 1 %>
-            <% end %>
+            <div class="card-actions">
+              <% if chartable %>
+                <%= link_to "View trend ›", trend_path(article: row.article, product: row.products.first[:title], as_of: (@replay ? params[:as_of] : nil)),
+                            class: "card-open", data: { trend: true } %>
+              <% end %>
+              <% row.mappings.each do |mapping| %>
+                <%= render "fix_mapping", mapping: mapping, show_term: row.mappings.size > 1 %>
+              <% end %>
+            </div>
           </article>
         <% end %>
       </div>
+      <p class="filter-empty" hidden>Nothing in this group.</p>
     </section>
   <% end %>
 </main>
@@ -119,3 +121,9 @@
     Replays of trends the model was trained on are in-sample, so they demo the pipeline rather than prove accuracy.
   </p>
 </footer>
+
+<%# Trend panel dialog, filled by app.js when a card is clicked. %>
+<dialog class="trend-dialog" aria-label="Product trend">
+  <form method="dialog" class="dialog-close-form"><button class="dialog-close" aria-label="Close">×</button></form>
+  <div class="dialog-body" tabindex="-1"></div>
+</dialog>

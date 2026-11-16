@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   # The one page: products, mapped term, label, confidence, reasons.
   root "trends#index"
+  # One article's trend panel: a fragment for the in-page dialog, or a full page if opened directly.
+  get "trend", to: "trends#show", as: :trend
 
   # Merchant corrections to the product -> Wikipedia mapping.
   resources :mapping_overrides, only: %i[create destroy]
