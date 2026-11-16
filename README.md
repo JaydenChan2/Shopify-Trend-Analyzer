@@ -62,6 +62,10 @@ content, markup or branding. The charts are SVG built in Ruby (`TrendChart`), an
 interactivity is one small plain-JS file (`web/app/assets/javascripts/app.js`).
 There's no front-end framework or build step.
 
+**Dark mode** follows the system setting by default. The sun/moon button in the nav
+overrides it, and the choice is remembered in the browser. A tiny script in the
+page head applies a saved choice before the page draws, so there's no flash.
+
 Everything works without JavaScript too: each card links to a standalone
 `/trend` page with the same panel.
 
@@ -124,7 +128,7 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000 (landing page; the app is at /dashboard)
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 89 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 90 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.

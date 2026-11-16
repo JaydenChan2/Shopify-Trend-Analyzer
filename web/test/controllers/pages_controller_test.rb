@@ -34,4 +34,15 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".site-nav a[href=?]", root_path
     assert_select ".site-nav a[href=?]", dashboard_path
   end
+
+  test "every page has the theme toggle and applies a saved theme before paint" do
+    [root_path, methodology_path, dashboard_path].each do |path|
+      TrendsController.wikipedia_client = FakeWikipedia.new
+      get path
+      assert_select ".site-nav button.theme-toggle[data-theme-toggle][aria-pressed]", 1, path
+      assert_select "head script", /localStorage\.getItem\("theme"\)/
+    end
+  ensure
+    TrendsController.wikipedia_client = nil
+  end
 end

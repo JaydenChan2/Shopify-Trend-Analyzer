@@ -116,4 +116,33 @@
     tip.style.left = Math.min(Math.max(left, 70), box.width - 70) + "px";
     tip.style.top = (point[1] / viewBox.height) * box.height + "px";
   });
+
+  // ---------- 4. Light / dark toggle ----------
+  // An explicit choice is stored and set as <html data-theme>; with none, CSS follows the system.
+  const root = document.documentElement;
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+  const currentTheme = () => root.dataset.theme || (systemDark.matches ? "dark" : "light");
+
+  function syncThemeToggles() {
+    const dark = currentTheme() === "dark";
+    $$("[data-theme-toggle]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(dark));
+      button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-theme-toggle]")) return;
+    const next = currentTheme() === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch (error) {
+      // Private browsing can block storage: the switch still applies to this page.
+    }
+    syncThemeToggles();
+  });
+
+  systemDark.addEventListener("change", syncThemeToggles);
+  syncThemeToggles();
 })();
