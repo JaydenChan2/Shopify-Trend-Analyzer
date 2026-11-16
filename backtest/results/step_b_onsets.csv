@@ -1,0 +1,33 @@
+name,likely_type,created_mid_trend,onset_week,rule,onset_views,q4_onset,status,label,peak,late_mean,late_over_peak,reason
+Fidget spinner,fad,yes,2017-04-10,fallback,23664.0,,kept,spike,1352226.0,40070.0,0.03,
+Slime (toy),fad,no,2016-07-04,ratio,4421.0,,kept,sustained,4421.0,2298.0,0.52,
+Hatchimals,fad,yes,2016-12-05,fallback,4515.0,yes,kept,spike,9616.0,1992.0,0.207,
+Snap Spectacles,fad,yes,2017-01-30,fallback,3049.0,,kept,spike,9371.0,1439.0,0.154,
+Scrunchie,fad,no,2019-01-28,ratio,20063.0,,kept,spike,20063.0,4577.0,0.228,
+Prime (drink),fad,yes,2022-11-07,ratio,3475.0,yes,kept,sustained,56876.0,30162.0,0.53,
+Dubai chocolate,fad,yes,2024-12-16,fallback,17925.0,yes,kept,sustained,65320.0,28090.0,0.43,
+Labubu,fad,yes,2024-11-18,fallback,5989.0,yes,kept,sustained,41380.0,169101.0,4.087,
+Bath bomb,fad,no,,,,,DROPPED,,,,,no onset detected
+Fanny pack,fad,no,,,,,DROPPED,,,,,no onset detected
+Spiralizer,fad,no,2016-01-04,ratio,2187.0,,kept,sustained,2187.0,900.0,0.412,
+Choker,fad,no,2016-09-19,ratio,17985.0,,kept,spike,27176.0,5375.0,0.198,
+Mom jeans,fad,no,2018-12-24,ratio,4977.0,yes,kept,sustained,6178.0,1962.0,0.318,
+Rolled ice cream,fad,no,2018-01-08,ratio,11185.0,,kept,spike,11185.0,1428.0,0.128,
+Air fryer,sustained,no,2017-11-06,ratio,15541.0,yes,kept,sustained,38189.0,15098.0,0.395,
+Instant Pot,sustained,yes,2017-12-04,fallback,2123.0,yes,kept,spike,46655.0,2860.0,0.061,
+Oat milk,sustained,yes,2019-03-25,ratio,2085.0,,kept,sustained,3028.0,2937.0,0.97,
+Impossible Foods,sustained,no,2017-04-10,ratio,2040.0,,kept,sustained,2040.0,1351.0,0.663,
+CBD,sustained,no,2020-09-21,ratio,69720.0,,kept,spike,69720.0,13137.0,0.188,
+Keto diet,sustained,no,,,,,DROPPED,,,,,no onset detected
+Intermittent fasting,sustained,no,,,,,DROPPED,,,,,no onset detected
+Hard seltzer,sustained,yes,2019-08-12,fallback,3449.0,,kept,sustained,6477.0,5632.0,0.87,
+Pickleball,sustained,no,2023-10-23,ratio,149537.0,,kept,spike,149537.0,35933.0,0.24,
+Squishmallows,sustained,yes,2023-11-20,ratio,6806.0,yes,kept,sustained,8492.0,2532.0,0.298,
+Birria,sustained,no,,,,,DROPPED,,,,,no onset detected
+Stanley tumbler,sustained,no,2023-11-13,ratio,7995.0,yes,kept,spike,44786.0,3882.0,0.087,
+Gua sha,sustained,no,2016-02-22,ratio,10394.0,,kept,sustained,10394.0,5014.0,0.482,
+Hoka,sustained,no,,,,,DROPPED,,,,,no onset detected
+Liquid Death,sustained,yes,2021-04-19,fallback,7193.0,,kept,sustained,7193.0,3990.0,0.555,
+Matcha,sustained,no,,,,,DROPPED,,,,,no onset detected
+Ice bath (cold plunge),sustained,no,,,,,DROPPED,,,,,no onset detected
+Cottage cheese,sustained,no,,,,,DROPPED,,,,,no onset detected
