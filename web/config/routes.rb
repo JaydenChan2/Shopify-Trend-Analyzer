@@ -5,8 +5,12 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # The one page: products, mapped term, label, confidence, reasons.
-  root "trends#index"
+  # Marketing site
+  root "pages#home"
+  get "how-it-works", to: "pages#methodology", as: :methodology
+
+  # The app: products, mapped term, label, confidence, reasons.
+  get "dashboard", to: "trends#index", as: :dashboard
   # One article's trend panel: a fragment for the in-page dialog, or a full page if opened directly.
   get "trend", to: "trends#show", as: :trend
 

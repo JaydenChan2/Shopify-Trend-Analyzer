@@ -1,0 +1,100 @@
+<% content_for :title, "How it works · Spike or Stay" %>
+<%= render "shared/nav" %>
+
+<main>
+  <section class="page-hero">
+    <div class="wrap narrow">
+      <p class="eyebrow">Methodology</p>
+      <h1>How Spike or Stay makes a call</h1>
+      <p class="lede">
+        Given an abrupt surge in public interest, will it last? Here's every rule the app uses, how the model was
+        tested, and what it can't do. The full write-up and code are in the project's README and
+        <code>backtest/PREREGISTRATION.md</code>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="wrap narrow prose">
+      <h2>1. Interest data</h2>
+      <p>Daily Wikipedia pageviews (English, all devices, human readers only) from July 2015, summed into Monday–Sunday weeks.
+        Each product is matched to an article through its product type, falling back to its title.</p>
+
+      <h2>2. When did a surge start?</h2>
+      <div class="rule-card">
+        A week is the <strong>onset</strong> if its views are <strong>more than 3× the median of the previous 26 weeks</strong>,
+        at least <strong>2,000 views</strong>, and both hold for <strong>two weeks in a row</strong>.
+      </div>
+      <p>Articles created mid-trend have no history to compare against, so for them the onset is the first time they reach
+        the 2,000/week floor for two weeks in a row. The two-week rule was added after one-day Main Page and news blips were
+        found triggering onsets (logged as amendment 1).</p>
+
+      <h2>3. Was it sustained? (the label)</h2>
+      <div class="rule-card">
+        <strong>Sustained</strong> if average weekly views in weeks 26–51 after onset are at least <strong>25% of the peak week</strong>
+        in weeks 0–25. Otherwise, <strong>spike</strong>. No hand labelling.
+      </div>
+
+      <h2>4. What the model sees</h2>
+      <p>Only the first six weeks after onset (weeks 0–5). Tests feed in fake data after week 5 and check nothing changes.</p>
+      <table class="data-table">
+        <thead><tr><th>Feature</th><th>What it measures</th></tr></thead>
+        <tbody>
+          <tr><td>Growth</td><td>Average of weeks 3–5 vs weeks 0–2 (log ratio)</td></tr>
+          <tr><td>Acceleration</td><td>Is growth speeding up or slowing down?</td></tr>
+          <tr><td>Peak sharpness</td><td>Highest week ÷ average week</td></tr>
+          <tr><td>Volatility</td><td>How much views jump week to week</td></tr>
+        </tbody>
+      </table>
+      <p>A logistic regression on these four (standardized) features outputs the probability a surge is sustained.
+        The Rails app applies the exported weights in plain Ruby, and a parity test checks it matches Python to 1e-9.</p>
+    </div>
+  </section>
+
+  <%# Numbers from backtest/results/step_d_results.md. Update if the model is retrained. %>
+  <section class="section section-soft" id="results">
+    <div class="wrap narrow prose">
+      <p class="eyebrow">Backtest</p>
+      <h2>Results: n = <%= TrendModel.instance.trained_on["n"] %> past trends</h2>
+      <p>32 candidate trends were listed and audited before any data was examined. 16 had a clear onset and a full year of follow-up.
+        Leave-one-out cross-validation; brackets are 95% Wilson confidence intervals.</p>
+      <div class="table-scroll">
+        <table class="data-table results">
+          <thead><tr><th>Analysis</th><th>n</th><th>Majority</th><th>"Still rising"</th><th>Model</th></tr></thead>
+          <tbody>
+            <tr class="is-primary"><td>Primary</td><td>16</td><td>0%</td><td>62% <span>[39–82]</span></td><td><strong>75%</strong> <span>[51–90]</span></td></tr>
+            <tr><td>Excluding articles created mid-trend</td><td>6</td><td>67%</td><td>50%</td><td>83% <span>too small to read</span></td></tr>
+            <tr><td>Robustness: 2× multiplier</td><td>25</td><td>72%</td><td>52%</td><td>88% <span>[70–96]</span></td></tr>
+            <tr><td>Original 1-week rule</td><td>23</td><td>57%</td><td>57%</td><td>65% <span>[45–81]</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callouts">
+        <div class="callout"><strong>The good</strong><p>The model beats both baselines in all four analyses, and the learned weights make sense: sharp, jumpy early weeks point to a spike.</p></div>
+        <div class="callout"><strong>The caveat</strong><p>Against "still rising in week 6" in the primary analysis, the model wins by 2 trends (12 vs 10). An exploratory McNemar test gives p = 0.69: we can't tell them apart yet.</p></div>
+      </div>
+      <p class="fineprint">The majority baseline's 0% is a leave-one-out artifact on balanced data: removing a trend always makes its own class the minority. Chance is 50%.</p>
+    </div>
+  </section>
+
+  <section class="section" id="limitations">
+    <div class="wrap narrow prose">
+      <p class="eyebrow">Limitations</p>
+      <h2>What it can't do (yet)</h2>
+      <ul class="checks checks-muted">
+        <li><strong>Small dataset.</strong> 16 labelled trends. Treat accuracy as a signal, not a guarantee.</li>
+        <li><strong>Only abrupt surges.</strong> Gradual growth (keto, pickleball, matcha) never shows a 3× jump, so it reads "No surge detected".</li>
+        <li><strong>Interest isn't demand.</strong> Readers aren't buyers, and brand articles dilute product interest.</li>
+        <li><strong>Seasonality.</strong> 8 of 16 onsets fall in November or December; holiday peaks can inflate the label baseline.</li>
+        <li><strong>Mapping mistakes.</strong> "The Minimal Snowboard" once matched a video game. A sanity check and one-click overrides catch most, not all.</li>
+        <li><strong>No sales data yet.</strong> Order webhooks and sales velocity are the top next step.</li>
+      </ul>
+      <div class="hero-actions">
+        <%= link_to "Open the dashboard", dashboard_path, class: "btn btn-primary" %>
+        <%= link_to "Try the air fryer replay", dashboard_path(as_of: "2017-12-31"), class: "btn btn-outline" %>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%= render "shared/footer" %>

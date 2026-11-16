@@ -1,12 +1,22 @@
-<%# The one page. Styles in app/assets/stylesheets/application.css, behaviour in app/assets/javascripts/app.js. %>
-<%= render "topbar" %>
+<%# The dashboard. Styles in app/assets/stylesheets/application.css, behaviour in app/assets/javascripts/app.js. %>
+<% content_for :title, "Dashboard · Spike or Stay" %>
+<%= render "shared/nav" %>
 
-<main class="container">
-  <section class="hero">
-    <div class="hero-glow" aria-hidden="true"></div>
-    <p class="eyebrow">Trend intelligence for your catalog</p>
-    <h1>Spike <span class="hero-or">or</span> Stay.</h1>
-    <p class="lede">Given an abrupt surge in public interest, will it last?</p>
+<main class="wrap app">
+  <section class="app-head">
+    <div>
+      <p class="eyebrow">Dashboard</p>
+      <h1>Your catalog, <em>at a glance</em></h1>
+      <p class="lede">Which products are riding a surge in public interest, and whether it's likely to last.</p>
+    </div>
+    <div class="app-head-actions">
+      <% if @replay %>
+        <%= link_to "Back to today", dashboard_path, class: "btn btn-outline btn-sm" %>
+      <% else %>
+        <%= link_to "Try a replay", dashboard_path(as_of: "2017-12-31"), class: "btn btn-outline btn-sm" %>
+      <% end %>
+      <%= link_to "How it works", methodology_path, class: "btn btn-ghost-dark btn-sm" %>
+    </div>
   </section>
 
   <div class="banners">
@@ -14,7 +24,7 @@
       <div class="banner info">
         <strong>Replay as of <%= @as_of.strftime("%B %-d, %Y") %>.</strong>
         Only data from complete weeks up to <%= LiveLabel.last_complete_week_end(@as_of) %> is used.
-        <%= link_to "Back to today ›", root_path %>
+        <%= link_to "Back to today ›", dashboard_path %>
       </div>
     <% end %>
     <% if notice %><div class="banner success"><%= notice %></div><% end %>
@@ -103,24 +113,7 @@
   <% end %>
 </main>
 
-<footer class="site-footer">
-  <p class="footer-links">
-    Replay:
-    <%= link_to "Fidget spinner, Jun 2017 (spike)", root_path(as_of: "2017-06-12") %> ·
-    <%= link_to "Air fryer, Dec 2017 (sustained)", root_path(as_of: "2017-12-31") %> ·
-    <%= link_to "Today", root_path %>
-  </p>
-  <%# Numbers from backtest/results/step_d_results.md, analysis (a). Update if the model is retrained. %>
-  <p>
-    Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends:
-    leave-one-out accuracy 75% (95% CI 51–90%) vs 62% for "still rising in week 6".
-    The difference is within noise at this sample size. Confidence is the model's probability, not a guarantee.
-  </p>
-  <p>
-    Gradual trends never trigger a 3x surge, so they show as "No surge detected".
-    Replays of trends the model was trained on are in-sample, so they demo the pipeline rather than prove accuracy.
-  </p>
-</footer>
+<%= render "shared/footer" %>
 
 <%# Trend panel dialog, filled by app.js when a card is clicked. %>
 <dialog class="trend-dialog" aria-label="Product trend">

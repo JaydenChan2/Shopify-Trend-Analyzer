@@ -44,6 +44,6 @@ class MappingOverridesController < ApplicationController
   end
 
   def back_to_table(flash_message)
-    redirect_to root_path(as_of: params[:as_of].presence), flash_message
+    redirect_to dashboard_path(as_of: params[:as_of].presence), flash_message
   end
 end

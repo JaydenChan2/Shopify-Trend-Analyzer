@@ -12,7 +12,7 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
 
   test "saves an override for a real article and keeps as_of" do
     post mapping_overrides_path, params: { term: "Weighted Blanket", article: "Weighted blanket", as_of: "2017-06-12" }
-    assert_redirected_to root_path(as_of: "2017-06-12")
+    assert_redirected_to dashboard_path(as_of: "2017-06-12")
     assert_equal "Weighted blanket", MappingOverride.for_term("weighted blanket").article
     assert_match "now maps to", flash[:notice]
   end
@@ -25,7 +25,7 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
 
   test "an article that doesn't exist is rejected and nothing is saved" do
     post mapping_overrides_path, params: { term: "Mug", article: "Not A Real Article" }
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     assert_match "No Wikipedia article", flash[:alert]
     assert_equal 0, MappingOverride.count
   end
@@ -45,7 +45,7 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
   test "remove deletes the override" do
     override = MappingOverride.create!(term_key: "mug", ignored: true)
     delete mapping_override_path(override), params: { as_of: "2017-06-12" }
-    assert_redirected_to root_path(as_of: "2017-06-12")
+    assert_redirected_to dashboard_path(as_of: "2017-06-12")
     assert_equal 0, MappingOverride.count
   end
 end

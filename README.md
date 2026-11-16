@@ -26,7 +26,14 @@ small, so the evidence is promising, not conclusive.
 
 ## What a merchant sees
 
-One page, top to bottom:
+| Route | Page |
+|---|---|
+| `/` | **Landing page.** What it does, how it works in three steps, feature tour, "honest by design", FAQ. Static, so it loads instantly with no API calls. |
+| `/dashboard` | **The app**: the product cards described below. |
+| `/how-it-works` | **Methodology**: the onset and label rules, features, the full backtest table with confidence intervals, and limitations. |
+| `/trend?article=…` | One product's trend panel, as a standalone page (the dashboard opens the same panel in a dialog). |
+
+The dashboard, top to bottom:
 
 - **Summary cards** (surges, quiet, not enough data, not mapped). They double as
   **filters**: click one to show only those products.
@@ -46,12 +53,12 @@ One page, top to bottom:
     *sustained* or *spike* (the logistic regression's per-feature contribution),
     adding up to the shown probability
 
-The look is a dark storefront style modelled on the
-[ClaudeCMS store demo](https://claudecms.com/store-demo/): black page, rounded
-near-black cards, system font, heavy two-tone headings, pill tags and an orange
-accent. The colours and type sizes were measured from that page; the CSS is
-written from scratch. On top of that: a soft hero glow, cards that lift on hover,
-and an animated dialog. The charts are SVG built in Ruby (`TrendChart`), and
+The look is a light fintech style modelled on a
+[ClaudeCMS example landing page](https://claudecms.com/uploads/examples/02-fintech.html):
+white page, deep navy text, a green accent, italic serif accent words, pill
+buttons, soft-grey bands and a navy "trust" block. The colours and type sizes
+were measured from that page; the CSS is written from scratch, with no copied
+content, markup or branding. The charts are SVG built in Ruby (`TrendChart`), and
 interactivity is one small plain-JS file (`web/app/assets/javascripts/app.js`).
 There's no front-end framework or build step.
 
@@ -70,8 +77,8 @@ Everything works without JavaScript too: each card links to a standalone
 Example reason: *"Interest 5.8x its usual level over 6 weeks, holding steady."*
 
 **Replay mode.** Add `?as_of=YYYY-MM-DD` to see what the app would have said on a
-past date, e.g. `?as_of=2017-06-12` (fidget spinners → *Likely spike*) or
-`?as_of=2017-12-31` (air fryers → *Likely sustained*). Every series is cut to
+past date, e.g. `/dashboard?as_of=2017-06-12` (fidget spinners → *Likely spike*) or
+`/dashboard?as_of=2017-12-31` (air fryers → *Likely sustained*). Every series is cut to
 complete weeks before that date, so no later data can leak in, and a test proves
 it. These trends were in the training data, so replays demo the pipeline; they
 don't prove accuracy.
@@ -115,9 +122,9 @@ without any network calls.
 ```bash
 cd web
 bundle install
-bin/rails server      # http://localhost:3000
+bin/rails server      # http://localhost:3000 (landing page; the app is at /dashboard)
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 85 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 89 tests, incl. Python↔Ruby parity and as_of no-lookahead
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.

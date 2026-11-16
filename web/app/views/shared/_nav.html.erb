@@ -1,0 +1,22 @@
+<%# Site navigation, shared by the landing page, methodology page and the app. %>
+<% replay_as_of = @replay ? params[:as_of] : nil %>
+<header class="site-nav">
+  <div class="nav-inner">
+    <%= link_to root_path, class: "brand" do %><%= render "shared/logo" %><span>Spike or Stay</span><% end %>
+    <nav class="nav-links" aria-label="Main">
+      <%= link_to "How it works", methodology_path, class: ("is-active" if current_page?(methodology_path)) %>
+      <%= link_to "Results", methodology_path(anchor: "results") %>
+      <%= link_to "Replays", root_path(anchor: "replays") %>
+      <%= link_to "FAQ", root_path(anchor: "faq") %>
+    </nav>
+    <div class="nav-actions">
+      <% if @replay %><span class="pill pill-accent">Replay · <%= @as_of.strftime("%b %-d, %Y") %></span><% end %>
+      <% if @source&.mode == :demo %>
+        <span class="pill nav-status">Demo mode</span>
+      <% elsif @source&.shop %>
+        <span class="pill nav-status"><span class="live-dot" aria-hidden="true"></span><%= @source.shop %></span>
+      <% end %>
+      <%= link_to "Open dashboard", dashboard_path(as_of: replay_as_of), class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+</header>

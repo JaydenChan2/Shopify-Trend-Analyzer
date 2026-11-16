@@ -1,0 +1,32 @@
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <%= link_to root_path, class: "brand" do %><%= render "shared/logo" %><span>Spike or Stay</span><% end %>
+      <p>Tells Shopify merchants whether a product's surge in public interest is likely to last. A v0 built on Wikipedia pageviews.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <%= link_to "Dashboard", dashboard_path %>
+      <%= link_to "Fidget spinner replay", dashboard_path(as_of: "2017-06-12") %>
+      <%= link_to "Air fryer replay", dashboard_path(as_of: "2017-12-31") %>
+    </div>
+    <div class="footer-col">
+      <h4>Method</h4>
+      <%= link_to "How it works", methodology_path %>
+      <%= link_to "Backtest results", methodology_path(anchor: "results") %>
+      <%= link_to "Limitations", methodology_path(anchor: "limitations") %>
+    </div>
+    <div class="footer-col">
+      <h4>Help</h4>
+      <%= link_to "FAQ", root_path(anchor: "faq") %>
+    </div>
+  </div>
+  <div class="footer-legal">
+    <%# Numbers from backtest/results/step_d_results.md, analysis (a). Update if the model is retrained. %>
+    <p>
+      Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends: leave-one-out accuracy 75% (95% CI 51–90%)
+      vs 62% for "still rising in week 6". The difference is within noise at this sample size. Labels describe public
+      interest (Wikipedia pageviews), not sales. Confidence is the model's probability, not a guarantee.
+    </p>
+  </div>
+</footer>
