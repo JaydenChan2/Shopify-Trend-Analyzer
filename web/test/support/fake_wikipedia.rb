@@ -1,6 +1,6 @@
 # Stands in for WikipediaClient in tests: no network.
 #   search(term)          -> canned result or { title: term.capitalize }
-#   resolve_title(title)  -> canned result, or nil (no such article) by default
+#   resolve_title(title)  -> canned result; otherwise the title exists, unless listed in `missing`
 #   weekly_views(article) -> flat 3,000/week ("No surge detected"), or a custom
 #                            series for that article whose LAST value lands on the
 #                            last complete week (earlier weeks padded with 1,000)
@@ -9,8 +9,8 @@
 class FakeWikipedia
   attr_reader :series_requests, :top_requests
 
-  def initialize(search: {}, resolve: {}, series: {}, top: ->(_date) { [] }, items: {})
-    @search, @resolve, @series, @top, @items = search, resolve, series, top, items
+  def initialize(search: {}, resolve: {}, series: {}, top: ->(_date) { [] }, items: {}, missing: [])
+    @search, @resolve, @series, @top, @items, @missing = search, resolve, series, top, items, missing
     @series_requests = []
     @top_requests = []
   end
@@ -29,7 +29,9 @@ class FakeWikipedia
   end
 
   def resolve_title(title)
-    @resolve[title]
+    return nil if @missing.include?(title)
+
+    @resolve.fetch(title) { { title: title, redirected_from: nil } }
   end
 
   def weekly_views(article, through:)

@@ -465,6 +465,13 @@ form { margin: 0; }
 .detail-stats dt { color: var(--subtle); font-size: 12px; font-weight: 600; }
 .detail-stats dd { margin: 2px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; display: inline-block; }
 .detail-stats .hint { display: block; }
+.error-panel { max-width: 640px; margin: 24px auto; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); text-align: center; }
+.error-panel h1 { margin: 0 0 10px; font-size: clamp(24px, 4vw, 32px); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.error-panel p { margin: 0 0 18px; color: var(--muted); }
+.error-panel p:last-child { margin: 0; }
+.detail-stats .stat-wide { grid-column: span 2; }
+.detail-stats .dd-text { font-size: 17px; letter-spacing: -0.01em; }
+@media (max-width: 420px) { .detail-stats .stat-wide { grid-column: 1 / -1; } }
 .empty-chart { color: var(--muted); }
 
 .chart { position: relative; margin: 0; color: var(--tone); }

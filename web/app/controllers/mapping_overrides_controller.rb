@@ -19,6 +19,9 @@ class MappingOverridesController < ApplicationController
   class_attribute :locked_without_password, default: Rails.env.production?
 
   before_action :require_editor, unless: -> { DemoMode.on? }
+  # Saving checks the article title against Wikipedia: cap it per visitor (IP).
+  rate_limit to: 20, within: 1.minute, only: :create, store: RATE_LIMIT_STORE,
+             with: -> { back_to_table(alert: "Too many changes in a minute. Try again shortly.") }
 
   def create
     term = params[:term].to_s.strip
@@ -28,7 +31,10 @@ class MappingOverridesController < ApplicationController
       save(term, ignored: true)
       notice = "\"#{term}\" won't be tracked."
     else
-      resolved = wikipedia.resolve_title(params[:article].to_s.strip) if params[:article].present?
+      article = params[:article].to_s.strip
+      return back_to_table(alert: "That isn't a valid Wikipedia title.") if article.present? && !WikipediaTitle.valid?(article)
+
+      resolved = wikipedia.resolve_title(article) if article.present?
       return back_to_table(alert: "No Wikipedia article called \"#{params[:article]}\".") if resolved.nil?
 
       save(term, article: resolved[:title])

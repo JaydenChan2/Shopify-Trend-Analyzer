@@ -5,7 +5,7 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
     MappingOverridesController.wikipedia_client = FakeWikipedia.new(resolve: {
       "Weighted blanket" => { title: "Weighted blanket", redirected_from: nil },
       "Air fryer" => { title: "Convection oven", redirected_from: "Air fryer" }
-    })
+    }, missing: ["Not A Real Article"])
   end
 
   teardown do

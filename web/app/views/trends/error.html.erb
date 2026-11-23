@@ -1,0 +1,16 @@
+<%# Friendly /trend error: missing, invalid or unknown article, Wikipedia down, rate limited.
+    In the dialog (XHR) it's just the message; opened directly, it's a full page. %>
+<% unless request.xhr? %>
+  <% content_for :title, "#{@error_title} · Spike or Stay" %>
+  <%= render "shared/nav" %>
+  <main class="wrap app detail-page">
+<% end %>
+<div class="error-panel" role="alert">
+  <h1><%= @error_title %></h1>
+  <p><%= @error_message %></p>
+  <p><%= link_to "‹ Back to the dashboard", dashboard_path(as_of: (@replay ? params[:as_of] : nil)), class: "btn btn-outline btn-sm" %></p>
+</div>
+<% unless request.xhr? %>
+  </main>
+  <%= render "shared/footer" %>
+<% end %>

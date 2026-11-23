@@ -4,6 +4,10 @@ class ApplicationController < ActionController::Base
 
   EARLIEST_AS_OF = Date.new(2016, 2, 1) # need ~26 weeks of data (from 2015-07) for a baseline
 
+  # Counters for Rails' `rate_limit`. In memory: one Puma process on Render, and it keeps
+  # working in tests (where Rails.cache is a null store).
+  RATE_LIMIT_STORE = ActiveSupport::Cache::MemoryStore.new(size: 8.megabytes)
+
   private
 
   # ?as_of=YYYY-MM-DD for replays (dashboard and Discover).

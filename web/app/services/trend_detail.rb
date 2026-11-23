@@ -30,6 +30,15 @@ class TrendDetail
     !@features.nil?
   end
 
+  # True when there's no meaningful "usual level" yet: the article has under 26 weeks
+  # of history before the onset (or today), so the 26-week median is mostly zeros.
+  # Same test LiveLabel uses before saying "Nx its usual level".
+  def no_baseline?
+    first = @values.index(&:positive?)
+    upto = @onset_index || @values.length
+    !@baseline&.positive? || first.nil? || upto - first < TrendMath.rules["baseline_weeks"]
+  end
+
   # 3x the usual level: the bar a week has to clear to count as a surge.
   def surge_bar
     @baseline * TrendMath.rules["onset_multiplier"] if @baseline&.positive?

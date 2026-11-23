@@ -19,8 +19,12 @@
   <% unless detail.empty? %>
     <dl class="detail-stats">
       <div><dt>Latest week</dt><dd><%= compact_views(detail.values.last) %></dd></div>
-      <div><dt>Usual week</dt><dd><%= detail.baseline ? compact_views(detail.baseline) : "—" %></dd><span class="hint">typical views, last 6 months</span></div>
-      <div><dt>Jump level</dt><dd><%= detail.surge_bar ? compact_views(detail.surge_bar) : "—" %></dd><span class="hint">3 times a usual week</span></div>
+      <% if detail.no_baseline? %>
+        <div class="stat-wide"><dt>Usual week · Jump level</dt><dd class="dd-text">New article, no baseline yet</dd><span class="hint">needs 6 months of history before a 3× jump can be measured</span></div>
+      <% else %>
+        <div><dt>Usual week</dt><dd><%= compact_views(detail.baseline) %></dd><span class="hint">typical views, last 6 months</span></div>
+        <div><dt>Jump level</dt><dd><%= compact_views(detail.surge_bar) %></dd><span class="hint">3 times a usual week</span></div>
+      <% end %>
       <div><dt>Busiest week</dt><span class="hint">in the last 2 years</span><dd><%= compact_views(detail.values.last(TrendChart::WINDOW_WEEKS).max) %></dd></div>
     </dl>
     <%= render "chart", chart: detail.chart, detail: detail %>

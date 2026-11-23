@@ -2,7 +2,10 @@ require "test_helper"
 
 # Renders the whole page in demo mode with a fake Wikipedia (tests never load .env).
 class TrendsControllerTest < ActionDispatch::IntegrationTest
-  setup { TrendsController.wikipedia_client = FakeWikipedia.new }
+  setup do
+    TrendsController.wikipedia_client = FakeWikipedia.new
+    ApplicationController::RATE_LIMIT_STORE.clear
+  end
   teardown { TrendsController.wikipedia_client = nil }
 
   test "page renders demo products with labels and a fix-mapping form per row" do
@@ -190,5 +193,57 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     get dashboard_cards_path
     assert_select ".callout-empty", 0
     assert_select ".stat[data-filter=surge] .stat-number", "1"
+  end
+
+  # ---------- /trend errors and limits ----------
+
+  test "/trend with no article: a friendly 400 with a way back" do
+    get trend_path(product: "x")
+    assert_response :bad_request
+    assert_select ".error-panel h1", "No product picked"
+    assert_select ".error-panel a[href=?]", dashboard_path
+    assert_select ".site-nav" # a full, on-brand page
+  end
+
+  test "/trend rejects titles Wikipedia can't have, before any API call" do
+    wiki = FakeWikipedia.new
+    TrendsController.wikipedia_client = wiki
+    get trend_path(article: "Bad|Title<script>")
+    assert_response :bad_request
+    assert_select ".error-panel h1", /isn't a Wikipedia title/
+    get trend_path(article: "x" * 300)
+    assert_response :bad_request
+    assert_empty wiki.series_requests
+  end
+
+  test "/trend for an article that doesn't exist says so (junk or missing alike)" do
+    wiki = FakeWikipedia.new(missing: ["Asdkjhqwe zzz"])
+    TrendsController.wikipedia_client = wiki
+    get trend_path(article: "Asdkjhqwe zzz")
+    assert_response :not_found
+    assert_select ".error-panel h1", /No Wikipedia article called/
+    assert_empty wiki.series_requests, "no pageviews fetched for a title that doesn't exist"
+  end
+
+  test "/trend errors in the dialog are just the message" do
+    get trend_path(product: "x"), xhr: true
+    assert_response :bad_request
+    assert_select ".error-panel"
+    assert_select ".site-nav", 0
+  end
+
+  test "/trend is rate limited per visitor" do
+    60.times { get trend_path(article: "Matcha"), xhr: true }
+    assert_response :success
+    get trend_path(article: "Matcha"), xhr: true
+    assert_response :too_many_requests
+    assert_select ".error-panel h1", "Slow down a little"
+  end
+
+  test "a brand-new article shows 'no baseline yet' instead of 0 and a dash" do
+    TrendsController.wikipedia_client = FakeWikipedia.new(series: { "Fidget spinner" => [0] * 40 + [9000, 30000, 80000, 150000, 200000, 220000, 250000] })
+    get trend_path(article: "Fidget spinner"), xhr: true
+    assert_select ".detail-stats .stat-wide dd", "New article, no baseline yet"
+    assert_select ".detail-stats dt", { text: "Usual week", count: 0 }
   end
 end

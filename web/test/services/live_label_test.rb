@@ -22,6 +22,12 @@ class LiveLabelTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 11, 8), LiveLabel.last_complete_week_end(monday)
   end
 
+  test "views that stopped entirely read as 'no views', not '~0 views/week'" do
+    r = LiveLabel.call(weeks([3000] * 30 + [0] * 20), as_of: as_of_after(50))
+    assert_equal "Not enough data", r.label
+    assert_match "No Wikipedia views in recent weeks", r.reason
+  end
+
   test "no surge when flat above the floor" do
     values = [3000] * 40
     assert_equal "No surge detected", LiveLabel.call(weeks(values), as_of: as_of_after(values.size)).label

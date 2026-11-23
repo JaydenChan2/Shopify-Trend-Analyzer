@@ -104,6 +104,8 @@ class LiveLabel
     floor = TrendMath.rules["min_weekly_views"]
     if surging?(@values.length - 1)
       no_surge("Elevated for over #{LIVE_WINDOW_WEEKS} weeks (an older surge, outside the window).")
+    elsif recent < 1
+      not_enough_data("No Wikipedia views in recent weeks (the article may have been renamed, merged or deleted).")
     elsif recent < floor
       not_enough_data("Only ~#{fmt_views(recent)} views/week recently; a surge needs at least " \
                       "#{fmt_views(floor)}/week to be detected.")
