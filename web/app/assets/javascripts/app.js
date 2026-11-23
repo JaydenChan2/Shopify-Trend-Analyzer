@@ -145,4 +145,32 @@
 
   systemDark.addEventListener("change", syncThemeToggles);
   syncThemeToggles();
+
+  // ---------- 5. Sections loaded after the page (dashboard cards, Discover results) ----------
+  // The server renders the page shell at once; the slow, Wikipedia-backed part comes from
+  // data-lazy-src. Without JS, the <noscript> link loads the full page instead.
+  async function loadLazy(section) {
+    try {
+      const response = await fetch(section.dataset.lazySrc, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!response.ok) throw new Error(String(response.status));
+      const holder = document.createElement("div");
+      holder.innerHTML = await response.text(); // our own server-rendered partial
+      section.replaceWith(...holder.childNodes);
+    } catch (error) {
+      section.setAttribute("aria-busy", "false");
+      const status = $(".lazy-status", section);
+      status.textContent = "Couldn’t load this from Wikipedia. ";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "link-button";
+      retry.textContent = "Try again";
+      retry.addEventListener("click", () => {
+        status.textContent = "Loading…";
+        section.setAttribute("aria-busy", "true");
+        loadLazy(section);
+      });
+      status.append(retry);
+    }
+  }
+  $$("[data-lazy-src]").forEach(loadLazy);
 })();

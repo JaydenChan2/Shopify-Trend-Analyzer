@@ -20,58 +20,27 @@
     </div>
   </section>
 
+  <% if @replay || @as_of_error %>
   <div class="banners">
-    <% if @result %>
-      <div class="banner info">
-        <strong>How these were found:</strong>
-        the <%= number_with_delimiter(@result.scanned) %> most-read English Wikipedia articles for
-        <%= @result.week_start.strftime("%b %-d") %>–<%= @result.week_end.strftime("%b %-d, %Y") %>,
-        kept only if Wikidata says they're a product (toys, food, drinks, clothing, beauty, gadgets, games, brands).
-        Only big trends make that list: roughly 10,000+ views a day.
-      </div>
-    <% end %>
     <% if @replay %>
       <div class="banner info">
         <strong>Replay as of <%= @as_of.strftime("%B %-d, %Y") %>.</strong>
         Only data from complete weeks up to <%= LiveLabel.last_complete_week_end(@as_of) %> is used.
         <%= link_to "Back to this week ›", discover_path %>
       </div>
-      <%= render "trends/hindsight_banner", rows: @result.surging if @result %>
     <% end %>
     <% if @as_of_error %><div class="banner warning"><%= @as_of_error %></div><% end %>
-    <% if @error %><div class="banner critical">Couldn't scan Wikipedia right now: <%= @error %>. Try again in a minute.</div><% end %>
   </div>
+  <% end %>
 
-  <% if @result %>
-    <section>
-      <div class="section-head">
-        <h2 class="section-title">Surging. <span>Interest jumped in the last 10 weeks. Click a card for its chart.</span></h2>
-      </div>
-      <% if @result.surging.any? %>
-        <div class="product-grid">
-          <%= render partial: "trends/card", collection: @result.surging, as: :row, locals: { show_mapping: false } %>
-        </div>
-      <% else %>
-        <p class="empty-state">No product on the most-read list had a 3× jump this week. That's normal: big product
-          surges are rare. Try <%= link_to "the fidget spinner week", discover_path(as_of: "2017-06-12") %>.</p>
-      <% end %>
-    </section>
-
-    <% if @result.steady.any? %>
-      <section class="steady">
-        <div class="section-head">
-          <h2 class="section-title">Popular, no jump. <span>Heavily read, but steady, or still up from an older surge.</span></h2>
-        </div>
-        <ul class="steady-list">
-          <% @result.steady.each do |row| %>
-            <li>
-              <%= link_to row.article, trend_path(article: row.article, as_of: (@replay ? params[:as_of] : nil)), data: { trend: true } %>
-              <span class="muted"><%= row.kinds.first %> · <%= row.result.label.downcase %></span>
-            </li>
-          <% end %>
-        </ul>
-      </section>
-    <% end %>
+  <%# Scanning Wikipedia can take a few seconds when the cache is cold, so the page
+      renders first and app.js loads the results from /discover/results. %>
+  <% if @result || @error %>
+    <%= render "discover/results" %>
+  <% else %>
+    <%= render "shared/lazy", src: discover_results_path(as_of: (@replay ? params[:as_of] : nil)),
+               fallback: discover_path(as_of: (@replay ? params[:as_of] : nil), inline: 1),
+               what: "this week's most-read products" %>
   <% end %>
 </main>
 

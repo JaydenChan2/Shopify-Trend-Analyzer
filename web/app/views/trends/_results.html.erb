@@ -1,0 +1,33 @@
+<%# Everything on the dashboard that needs Wikipedia data. Rendered inline (?inline=1)
+    or fetched by app.js from /dashboard/cards into the page shell. %>
+<% if @fatal_error || @source&.error || (@replay && @rows.any?) %>
+  <div class="banners">
+    <%= render "trends/hindsight_banner", rows: @rows if @replay %>
+    <% if @fatal_error %><div class="banner critical"><%= @fatal_error %></div><% end %>
+    <% if @source&.error %>
+      <div class="banner critical">Couldn't load products from <%= @source.shop %>: <%= @source.error %></div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @rows.any? %>
+  <section class="stats" aria-label="Filter by label">
+    <% summary_counts(@rows).each do |key, (name, count)| %>
+      <button type="button" class="stat stat-<%= key %>" data-filter="<%= key %>" aria-pressed="false" <%= "disabled" if count.zero? %>>
+        <span class="stat-number"><%= count %></span>
+        <span class="stat-label"><%= name %></span>
+      </button>
+    <% end %>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2 class="section-title">Your products. <span>Click a card to see its chart.</span></h2>
+      <p class="filter-status" hidden>Showing <strong data-filter-name></strong> · <button type="button" class="link-button" data-filter-clear>Show all</button></p>
+    </div>
+    <div class="product-grid">
+      <%= render partial: "card", collection: @rows, as: :row %>
+    </div>
+    <p class="filter-empty" hidden>Nothing in this group.</p>
+  </section>
+<% end %>

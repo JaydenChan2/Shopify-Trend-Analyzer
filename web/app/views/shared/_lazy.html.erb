@@ -1,0 +1,9 @@
+<%# A section loaded after the page: app.js fetches `src` and swaps it in.
+    Locals: src (fragment URL), fallback (full page with the section inline), what (e.g. "products"). %>
+<section class="lazy" data-lazy-src="<%= src %>" aria-busy="true" aria-live="polite">
+  <p class="lazy-status"><span class="spinner" aria-hidden="true"></span> Loading <%= what %> from Wikipedia…</p>
+  <div class="skeleton-grid" aria-hidden="true">
+    <% 3.times do %><div class="skeleton-card"></div><% end %>
+  </div>
+  <noscript><p><%= link_to "Show #{what}", fallback %></p></noscript>
+</section>

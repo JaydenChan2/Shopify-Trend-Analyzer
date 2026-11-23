@@ -11,9 +11,11 @@ Rails.application.routes.draw do
 
   # The app: products, mapped term, label, confidence, reasons.
   get "dashboard", to: "trends#index", as: :dashboard
+  get "dashboard/cards", to: "trends#cards", as: :dashboard_cards
   # One article's trend panel: a fragment for the in-page dialog, or a full page if opened directly.
   get "trend", to: "trends#show", as: :trend
   get "discover", to: "discover#index", as: :discover
+  get "discover/results", to: "discover#results", as: :discover_results
 
   # Merchant corrections to the product -> Wikipedia mapping.
   # Overrides are keyed by search term (session-scoped ones have no id), so removal takes ?term=.

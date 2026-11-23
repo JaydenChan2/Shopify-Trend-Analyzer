@@ -30,7 +30,7 @@ class WikipediaClient
   # Exact-title lookup, following redirects: { title:, redirected_from: } or nil if no such article.
   # Used to validate mapping overrides before saving them.
   def resolve_title(title)
-    Rails.cache.fetch(["wiki-resolve-v1", title], expires_in: 1.day) do
+    Rails.cache.fetch(["wiki-resolve-v1", title], expires_in: 7.days) do
       uri = URI(SEARCH_API)
       uri.query = URI.encode_www_form(action: "query", titles: title, redirects: 1, format: "json")
       query = JSON.parse(get(uri).body).fetch("query")
@@ -88,9 +88,11 @@ class WikipediaClient
   private
 
   # { Date => views }. Missing days mean zero views (the API omits them).
+  # `through` is always the end of a complete week whose data is published (see
+  # LiveLabel::DATA_LAG_DAYS), so the result doesn't change; the key moves on weekly.
   def daily_views(article, through)
     old_range = through < Date.current - 14
-    Rails.cache.fetch(["wiki-daily-v1", article, through.iso8601], expires_in: old_range ? 30.days : 12.hours) do
+    Rails.cache.fetch(["wiki-daily-v1", article, through.iso8601], expires_in: old_range ? 30.days : 7.days) do
       path = ERB::Util.url_encode(article.tr(" ", "_"))
       uri = URI("#{PAGEVIEWS_API}/#{path}/daily/#{DATA_START.strftime('%Y%m%d')}00/#{through.strftime('%Y%m%d')}00")
       response = get(uri, allow_404: true)

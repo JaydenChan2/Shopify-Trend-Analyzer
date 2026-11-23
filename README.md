@@ -198,6 +198,13 @@ How the public deploy behaves:
 - **Without demo mode**, overrides are saved for everyone. In production that's
   locked unless `OVERRIDES_PASSWORD` is set; if it is, saving asks for a username
   (`admin`, or `OVERRIDES_USER`) and that password.
+- **Fast first load.** `/dashboard` and `/discover` send the page at once and load
+  the cards after (with a loading state; `?inline=1` renders everything in one go,
+  which is also the no-JS fallback). When the server boots, a background thread
+  warms the cache for the store (today and the replays above) and Discover
+  (`CacheWarmer`; `WARM_CACHE=0` turns it off). Measured locally on an empty cache:
+  the page shell arrives in ~15 ms either way; the cards took 8.3 s cold and 0.3 s
+  once warmed (warming takes ~50 s after boot).
 - **Free plan limits.** The service sleeps after about 15 minutes idle, and the
   first visit afterwards takes up to a minute. Storage is wiped on every deploy
   and restart: the Wikipedia cache rebuilds itself, but overrides saved in the UI

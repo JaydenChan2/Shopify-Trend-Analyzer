@@ -18,7 +18,7 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shows surging products as cards and steady ones as a list" do
-    get discover_path
+    get discover_path(inline: 1)
     assert_response :success
     assert_select ".product-card", 1
     assert_select ".product-card .product-title", "Fidget spinner"
@@ -30,20 +30,20 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "no store mapping on Discover: no fix forms" do
-    get discover_path
+    get discover_path(inline: 1)
     assert_select "details.fix", 0
     assert_select ".product-card .article a[href^=?]", "https://en.wikipedia.org/wiki/"
   end
 
   test "replays carry the date and the hindsight tally" do
-    get discover_path(as_of: "2017-06-12")
+    get discover_path(as_of: "2017-06-12", inline: 1)
     assert_select ".banner.info", /Replay as of June 12, 2017/
     assert_select ".pill-accent", /Jun 12, 2017/
   end
 
   test "an empty week says so instead of showing nothing" do
     DiscoverController.wikipedia_client = FakeWikipedia.new
-    get discover_path
+    get discover_path(inline: 1)
     assert_select ".empty-state", /No product on the most-read list/
   end
 
@@ -51,7 +51,7 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
     broken = FakeWikipedia.new
     def broken.top_articles(_date) = raise(WikipediaClient::Error, "HTTP 503")
     DiscoverController.wikipedia_client = broken
-    get discover_path
+    get discover_path(inline: 1)
     assert_response :success
     assert_select ".banner.critical", /HTTP 503/
   end
@@ -59,5 +59,14 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
   test "the nav links to Discover" do
     get root_path
     assert_select ".nav-links a[href=?]", discover_path
+  end
+
+  test "the Discover shell renders at once and loads results after" do
+    get discover_path
+    assert_select ".lazy[data-lazy-src=?]", discover_results_path
+    assert_select ".product-card", 0
+    get discover_results_path
+    assert_select ".product-card .product-title", "Fidget spinner"
+    assert_select ".site-nav", 0
   end
 end

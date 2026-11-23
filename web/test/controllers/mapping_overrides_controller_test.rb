@@ -104,8 +104,8 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
 
     # What each visitor's dashboard shows (the demo catalog has a "Matcha" product).
     TrendsController.wikipedia_client = FakeWikipedia.new
-    alice.get dashboard_path
-    bob.get dashboard_path
+    alice.get dashboard_path(inline: 1)
+    bob.get dashboard_path(inline: 1)
     article = ->(visitor) { visitor.css_select(".product-card").find { |c| c.text.include?("Matcha") }.css(".article").text }
     assert_equal "Weighted blanket", article.(alice)
     assert_equal "Matcha", article.(bob)

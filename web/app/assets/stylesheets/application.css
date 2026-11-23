@@ -549,3 +549,13 @@ form { margin: 0; }
 .steady-list a { font-weight: 700; color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
 .steady-list a:hover { text-decoration: underline; }
 .steady-list .muted { font-size: 12px; color: var(--subtle); }
+
+/* ---------- sections loaded after the page (shared/_lazy) ---------- */
+.lazy { display: grid; gap: 16px; }
+.lazy-status { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 14px; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-strong); border-top-color: var(--green); animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 18px; }
+.skeleton-card { height: 260px; border-radius: 22px; border: 1px solid var(--border); background: linear-gradient(100deg, var(--surface) 30%, var(--bg-soft) 50%, var(--surface) 70%) 0 0 / 300% 100%; animation: shimmer 1.4s ease-in-out infinite; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .spinner, .skeleton-card { animation: none; } }
