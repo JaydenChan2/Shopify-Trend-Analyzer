@@ -40,9 +40,26 @@ class ShopifyClient
 
   attr_reader :shop
 
-  # [{ id:, title:, product_type:, tags: }, ...]
+  # Products change rarely, and every dashboard view needs them: keep them this long.
+  PRODUCTS_TTL = 5.minutes
+
+  # [{ id:, title:, product_type:, tags: }, ...], cached for PRODUCTS_TTL per shop.
+  # A failed fetch raises before anything is written, so errors are never cached.
   # TODO(pagination): only the first 50 products for v0; follow pageInfo.endCursor for more.
   def products(limit: 50)
+    @cache.fetch(["shopify-products-v1", @shop, limit], expires_in: PRODUCTS_TTL) { fetch_products(limit) }
+  end
+
+  def access_token
+    cached = @cache.read(token_cache_key)
+    return cached[:token] if cached && cached[:expires_at] > Time.current + REFRESH_MARGIN
+
+    fetch_new_token
+  end
+
+  private
+
+  def fetch_products(limit)
     status, body = @http.call(URI("https://#{@shop}/admin/api/#{API_VERSION}/graphql.json"),
                               { query: PRODUCTS_QUERY, variables: { first: limit } },
                               { "X-Shopify-Access-Token" => access_token })
@@ -54,15 +71,6 @@ class ShopifyClient
       { id: node["id"], title: node["title"], product_type: node["productType"].to_s, tags: node["tags"] }
     end
   end
-
-  def access_token
-    cached = @cache.read(token_cache_key)
-    return cached[:token] if cached && cached[:expires_at] > Time.current + REFRESH_MARGIN
-
-    fetch_new_token
-  end
-
-  private
 
   def fetch_new_token
     status, body = @http.call(URI("https://#{@shop}/admin/oauth/access_token"),

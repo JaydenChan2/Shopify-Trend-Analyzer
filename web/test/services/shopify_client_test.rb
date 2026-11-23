@@ -73,6 +73,26 @@ class ShopifyClientTest < ActiveSupport::TestCase
     assert_equal ["ACTIVE"], products.map { |p| p[:title] }
   end
 
+  test "products are cached per shop for a few minutes, so dashboard views don't refetch" do
+    http = FakeHttp.new
+    shop = client(http)
+    2.times { shop.products }
+    assert_equal 1, http.graphql_requests.size
+    travel ShopifyClient::PRODUCTS_TTL + 1.second do
+      shop.products
+    end
+    assert_equal 2, http.graphql_requests.size, "refetched after the TTL"
+  end
+
+  test "a failed products fetch isn't cached" do
+    cache = ActiveSupport::Cache::MemoryStore.new
+    broken = FakeHttp.new(graphql_response: ["500", nil])
+    assert_raises(ShopifyClient::Error) { client(broken, cache: cache).products }
+    working = FakeHttp.new
+    assert_equal [], client(working, cache: cache).products
+    assert_equal 1, working.graphql_requests.size
+  end
+
   test "GraphQL errors raise" do
     http = FakeHttp.new(graphql_response: ["200", { "errors" => [{ "message" => "Access denied for products field." }] }])
     error = assert_raises(ShopifyClient::Error) { client(http).products }
