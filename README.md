@@ -207,6 +207,10 @@ How the public deploy behaves:
   (`CacheWarmer`; `WARM_CACHE=0` turns it off). Measured locally on an empty cache:
   the page shell arrives in ~15 ms either way; the cards took 8.3 s cold and 0.3 s
   once warmed (warming takes ~50 s after boot).
+- **Keep-alive.** `.github/workflows/keep-alive.yml` requests `/up` every 10 minutes
+  so the free instance doesn't sleep (and its warm cache survives). One service awake
+  all month uses ~720-744 of Render's 750 free hours, so it only fits if it's your
+  only free service. GitHub pauses schedules after 60 days without commits.
 - **Free plan limits.** The service sleeps after about 15 minutes idle, and the
   first visit afterwards takes up to a minute. Storage is wiped on every deploy
   and restart: the Wikipedia cache rebuilds itself, but overrides saved in the UI
