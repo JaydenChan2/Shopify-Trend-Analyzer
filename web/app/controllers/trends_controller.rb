@@ -1,15 +1,16 @@
 class TrendsController < ApplicationController
-  # Tests swap in a fake so they never call Wikipedia.
+  # Tests swap in fakes so they never call Wikipedia or Shopify.
   class_attribute :wikipedia_client, default: nil
+  class_attribute :product_source, default: ProductSource
 
   # GET /            -> labels as of today
   # GET /?as_of=DATE -> replay: what the app would have said on DATE (no data after it is used)
   def index
     @as_of, @as_of_error = parse_as_of(params[:as_of])
     @replay = params[:as_of].present? && @as_of_error.nil?
-    @source = ProductSource.call
+    @source = product_source.call
     wikipedia = self.class.wikipedia_client || WikipediaClient.new
-    @rows = ProductTrend.rows(@source.products, as_of: @as_of, wikipedia: wikipedia)
+    @rows = ProductTrend.rows(@source.products, as_of: @as_of, wikipedia: wikipedia, overrides: OverrideSet.for(session))
   rescue WikipediaClient::MissingContact => e
     @fatal_error = e.message
     @rows = []

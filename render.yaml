@@ -1,5 +1,5 @@
 # Render Blueprint: New > Blueprint in the Render dashboard, then pick this repo.
-# Runs the public demo: no Shopify variables are set, so the dashboard uses demo products.
+# Runs the public demo. DEMO_MODE keeps each visitor's mapping fixes in their own session.
 services:
   - type: web
     name: spike-or-stay
@@ -15,9 +15,12 @@ services:
       # Required by Wikipedia's API policy (an email or URL). You type it in when creating the Blueprint.
       - key: WIKI_CONTACT
         sync: false
-      # Optional. Set it to let you fix product mappings on the live site (username "admin").
-      # Leave it blank and mapping overrides are switched off for visitors.
+      # Optional, and only used when DEMO_MODE is off: lets you change shared mappings
+      # on the live site (username "admin"). Blank = shared mappings are locked.
       - key: OVERRIDES_PASSWORD
         sync: false
+      # Public demo: visitors' mapping fixes stay in their own session; header says "Demo store".
+      - key: DEMO_MODE
+        value: "true"
       - key: WEB_CONCURRENCY
         value: "1"

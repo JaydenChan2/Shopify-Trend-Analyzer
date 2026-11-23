@@ -1,54 +1,73 @@
 # Merchant corrections to the product -> Wikipedia mapping (one per search term).
-#   POST   /mapping_overrides       term=..., article=...   point the term at an article
-#   POST   /mapping_overrides       term=..., ignored=1     "don't track" this term
-#   DELETE /mapping_overrides/:id                           back to automatic search
-# Every action redirects back to the table, keeping ?as_of so replays aren't lost.
+#   POST   /mapping_overrides   term=..., article=...   point the term at an article
+#   POST   /mapping_overrides   term=..., ignored=1     "don't track" this term
+#   DELETE /mapping_overrides   term=...                back to the default (automatic search)
+# Every action redirects back to the dashboard, keeping ?as_of so replays aren't lost.
 #
-# Who may change overrides:
-#   OVERRIDES_PASSWORD set   -> anyone with the password (HTTP basic auth, username OVERRIDES_USER or "admin")
-#   not set, development/test -> anyone (your own machine)
-#   not set, production       -> nobody: on a public demo, visitors can't change what others see
+# Where a change is saved:
+#   DEMO_MODE on  -> this visitor's session only (OverrideSet), on top of the seeded
+#                    shared overrides. Anyone may try it; nobody else sees it.
+#   otherwise     -> the database, for everyone. Who may change it:
+#                      OVERRIDES_PASSWORD set     -> anyone with the password (HTTP basic auth,
+#                                                    username OVERRIDES_USER or "admin")
+#                      not set, development/test  -> anyone (your own machine)
+#                      not set, production        -> nobody
 class MappingOverridesController < ApplicationController
   # Tests swap in a fake so they never call Wikipedia.
   class_attribute :wikipedia_client, default: nil
-  # True in production; tests flip it to check the public-demo behaviour.
+  # True in production; tests flip it to check the locked behaviour.
   class_attribute :locked_without_password, default: Rails.env.production?
 
-  before_action :require_editor
+  before_action :require_editor, unless: -> { DemoMode.on? }
 
   def create
-    override = MappingOverride.find_or_initialize_by(term_key: params[:term].to_s.strip.downcase)
+    term = params[:term].to_s.strip
+    return back_to_table(alert: "Missing search term.") if term.blank?
 
     if params[:ignored].present?
-      override.assign_attributes(ignored: true, article: nil)
-      notice = "\"#{params[:term]}\" won't be tracked."
+      save(term, ignored: true)
+      notice = "\"#{term}\" won't be tracked."
     else
       resolved = wikipedia.resolve_title(params[:article].to_s.strip) if params[:article].present?
       return back_to_table(alert: "No Wikipedia article called \"#{params[:article]}\".") if resolved.nil?
 
-      override.assign_attributes(ignored: false, article: resolved[:title])
-      notice = "\"#{params[:term]}\" now maps to \"#{resolved[:title]}\"."
+      save(term, article: resolved[:title])
+      notice = "\"#{term}\" now maps to \"#{resolved[:title]}\"."
       notice += " (\"#{resolved[:redirected_from]}\" redirects there.)" if resolved[:redirected_from]
     end
-
-    if override.save
-      back_to_table(notice: notice)
-    else
-      back_to_table(alert: override.errors.full_messages.to_sentence)
-    end
+    back_to_table(notice: notice + visitor_note)
+  rescue ActiveRecord::RecordInvalid => e
+    back_to_table(alert: e.record.errors.full_messages.to_sentence)
   rescue WikipediaClient::Error, Net::OpenTimeout, Net::ReadTimeout, SocketError => e
     back_to_table(alert: "Couldn't check Wikipedia: #{e.message}")
   end
 
   def destroy
-    override = MappingOverride.find(params[:id])
-    override.destroy
-    back_to_table(notice: "Removed the override for \"#{override.term_key}\"; back to automatic search.")
+    term = OverrideSet.normalize(params[:term])
+    if DemoMode.on?
+      OverrideSet.for(session).remove_for_visitor(term)
+    else
+      MappingOverride.find_by(term_key: term)&.destroy
+    end
+    back_to_table(notice: "Removed the override for \"#{term}\"; back to the default mapping.#{visitor_note}")
   end
 
   private
 
-  # A before_action: if it redirects or asks for a password, create/destroy never run.
+  def save(term, article: nil, ignored: false)
+    if DemoMode.on?
+      OverrideSet.for(session).save_for_visitor(term, article: article, ignored: ignored)
+    else
+      override = MappingOverride.find_or_initialize_by(term_key: OverrideSet.normalize(term))
+      override.update!(article: article, ignored: ignored)
+    end
+  end
+
+  def visitor_note
+    DemoMode.on? ? " Only you see this change: it's saved in your browser session on this demo." : ""
+  end
+
+  # A before_action (real stores only): if it redirects or asks for a password, create/destroy never run.
   def require_editor
     password = ENV["OVERRIDES_PASSWORD"].presence
     if password
@@ -59,7 +78,7 @@ class MappingOverridesController < ApplicationController
           ActiveSupport::SecurityUtils.secure_compare(given_password, password)
       end
     elsif locked_without_password
-      back_to_table(alert: "Fixing mappings is turned off on this public demo. Run the app locally to try it.")
+      back_to_table(alert: "Fixing mappings is turned off on this site.")
     end
   end
 

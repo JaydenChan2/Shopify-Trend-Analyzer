@@ -11,10 +11,10 @@
     </nav>
     <div class="nav-actions">
       <% if @replay %><span class="pill pill-accent">Replay · <%= @as_of.strftime("%b %-d, %Y") %></span><% end %>
-      <% if @source&.mode == :demo %>
-        <span class="pill nav-status">Demo mode</span>
+      <% if @source && (DemoMode.on? || @source.mode == :demo) %>
+        <span class="pill nav-status">Demo store</span>
       <% elsif @source&.shop %>
-        <span class="pill nav-status"><span class="live-dot" aria-hidden="true"></span><%= @source.shop %></span>
+        <span class="pill nav-status" title="<%= @source.shop %>"><span class="live-dot" aria-hidden="true"></span><span class="nav-shop"><%= @source.shop %></span></span>
       <% end %>
       <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Switch to dark mode">
         <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>

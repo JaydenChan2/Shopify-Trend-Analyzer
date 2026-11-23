@@ -9,6 +9,7 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
   end
 
   teardown do
+    ENV.delete("DEMO_MODE")
     MappingOverridesController.wikipedia_client = nil
     MappingOverridesController.locked_without_password = false
     ENV.delete("OVERRIDES_PASSWORD")
@@ -54,7 +55,7 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to dashboard_path(as_of: "2017-06-12")
     assert_match "turned off", flash[:alert]
 
-    delete mapping_override_path(override)
+    delete mapping_overrides_path, params: { term: "mug" }
     assert_equal ["mug"], MappingOverride.pluck(:term_key)
   end
 
@@ -80,8 +81,62 @@ class MappingOverridesControllerTest < ActionDispatch::IntegrationTest
 
   test "remove deletes the override" do
     override = MappingOverride.create!(term_key: "mug", ignored: true)
-    delete mapping_override_path(override), params: { as_of: "2017-06-12" }
+    delete mapping_overrides_path, params: { term: "Mug", as_of: "2017-06-12" }
     assert_redirected_to dashboard_path(as_of: "2017-06-12")
+    assert_equal 0, MappingOverride.count
+  end
+
+  # ---------- DEMO_MODE: per-visitor overrides ----------
+
+  test "demo mode: a visitor's override is theirs alone and never touches the database" do
+    ENV["DEMO_MODE"] = "true"
+    MappingOverridesController.locked_without_password = true # production-like: still allowed in demo mode
+    MappingOverride.create!(term_key: "matcha", article: "Matcha") # a seeded default
+
+    alice = open_session
+    bob = open_session
+    alice.post mapping_overrides_path, params: { term: "Matcha", article: "Weighted blanket" }
+    assert_match "Only you see this change", alice.flash[:notice]
+
+    assert_equal "Matcha", MappingOverride.for_term("matcha").article, "the shared default is unchanged"
+    assert_equal 1, MappingOverride.count
+    assert_equal "Weighted blanket", alice.session["demo_overrides"]["matcha"]["article"]
+
+    # What each visitor's dashboard shows (the demo catalog has a "Matcha" product).
+    TrendsController.wikipedia_client = FakeWikipedia.new
+    alice.get dashboard_path
+    bob.get dashboard_path
+    article = ->(visitor) { visitor.css_select(".product-card").find { |c| c.text.include?("Matcha") }.css(".article").text }
+    assert_equal "Weighted blanket", article.(alice)
+    assert_equal "Matcha", article.(bob)
+  ensure
+    TrendsController.wikipedia_client = nil
+  end
+
+  test "demo mode: removing a default hides it for that visitor only" do
+    ENV["DEMO_MODE"] = "true"
+    MappingOverride.create!(term_key: "giftcard", ignored: true)
+    delete mapping_overrides_path, params: { term: "giftcard" }
+    assert MappingOverride.for_term("giftcard"), "still there for everyone else"
+    assert_nil OverrideSet.new(session: session).lookup("giftcard"), "gone for this visitor"
+    assert OverrideSet.shared.lookup("giftcard").ignored
+  end
+
+  test "demo mode: removing your own change goes back to the shared default" do
+    ENV["DEMO_MODE"] = "true"
+    MappingOverride.create!(term_key: "matcha", article: "Matcha")
+    post mapping_overrides_path, params: { term: "matcha", ignored: "1" }
+    assert OverrideSet.new(session: session).lookup("matcha").ignored
+    delete mapping_overrides_path, params: { term: "matcha" }
+    entry = OverrideSet.new(session: session).lookup("matcha")
+    assert_equal ["Matcha", :shared], [entry.article, entry.scope]
+  end
+
+  test "demo mode ignores OVERRIDES_PASSWORD: nothing shared can be changed anyway" do
+    ENV["DEMO_MODE"] = "true"
+    ENV["OVERRIDES_PASSWORD"] = "s3cret"
+    post mapping_overrides_path, params: { term: "Gift Card", ignored: "1" }
+    assert_redirected_to dashboard_path
     assert_equal 0, MappingOverride.count
   end
 end

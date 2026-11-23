@@ -127,4 +127,29 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".hindsight", count: 0
     assert_select ".hindsight-banner", count: 0
   end
+
+  # ---------- header store pill ----------
+
+  test "sample products show 'Demo store' in the header" do
+    get dashboard_path
+    assert_select ".nav-status", "Demo store"
+  end
+
+  test "a real store shows its domain, truncatable, with the full domain as a title" do
+    store = ProductSource::Result.new(products: [], mode: :shopify, shop: "a-very-long-store-name.myshopify.com")
+    TrendsController.product_source = Struct.new(:result) { def call = result }.new(store)
+    begin
+      get dashboard_path
+      assert_select ".nav-status[title=?] .nav-shop", "a-very-long-store-name.myshopify.com", text: "a-very-long-store-name.myshopify.com"
+
+      ENV["DEMO_MODE"] = "true"
+      get dashboard_path
+      assert_select ".nav-status", "Demo store"
+      assert_select ".nav-shop", 0
+    ensure
+      TrendsController.product_source = ProductSource
+    end
+  ensure
+    ENV.delete("DEMO_MODE")
+  end
 end

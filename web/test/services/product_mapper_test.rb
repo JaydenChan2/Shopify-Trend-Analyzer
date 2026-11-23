@@ -67,7 +67,7 @@ class ProductMapperTest < ActiveSupport::TestCase
   test "an override decides the article without searching" do
     override = MappingOverride.create!(term_key: "the minimal snowboard", article: "Snowboard")
     m = map({ title: "The Minimal Snowboard", product_type: "" })
-    assert_equal ["Snowboard", override.id], [m.article, m.override_id]
+    assert_equal ["Snowboard", override.id, :shared], [m.article, m.override_id, m.override_scope]
     assert_empty @wiki.searched
   end
 

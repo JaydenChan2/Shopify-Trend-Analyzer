@@ -1,5 +1,5 @@
 # Maps a product to a search term (productType, falling back to title) and then
-# to a Wikipedia article: a merchant's MappingOverride if there is one, otherwise
+# to a Wikipedia article: an override if there is one (see OverrideSet), otherwise
 # Wikipedia search, refusing search results that are likely wrong.
 class ProductMapper
   # Product types too broad to stand for a trend. Compared after lowercasing and
@@ -12,12 +12,14 @@ class ProductMapper
   STOPWORDS = %w[a an and the of for with in on by to].to_set.freeze
 
   # article is nil when unmapped; `problem` then explains why.
-  # override_id is set when a MappingOverride decided the mapping; ignored when it says "don't track".
-  Mapping = Struct.new(:term, :source, :article, :redirected_from, :problem, :override_id, :ignored,
+  # override_scope is :shared or :session when an override decided the mapping
+  # (override_id is the MappingOverride id for shared ones); ignored when it says "don't track".
+  Mapping = Struct.new(:term, :source, :article, :redirected_from, :problem, :override_scope, :override_id, :ignored,
                        keyword_init: true)
 
-  def initialize(wikipedia: WikipediaClient.new)
+  def initialize(wikipedia: WikipediaClient.new, overrides: OverrideSet.shared)
     @wikipedia = wikipedia
+    @overrides = overrides
   end
 
   # product: { title:, product_type:, tags: }
@@ -26,7 +28,7 @@ class ProductMapper
     term, source = type.present? ? [type, "productType"] : [search_friendly(product[:title]), "title"]
 
     # The merchant's correction wins over everything else (search, sanity check, generic list).
-    if (override = MappingOverride.for_term(term))
+    if (override = @overrides.lookup(term))
       return from_override(term, source, override)
     end
     if source == "productType" && generic?(type)
@@ -45,11 +47,11 @@ class ProductMapper
   private
 
   def from_override(term, source, override)
-    if override.ignored?
-      Mapping.new(term: term, source: source, override_id: override.id, ignored: true,
-                  problem: "Marked \"don't track\".")
+    marks = { override_scope: override.scope, override_id: override.id }
+    if override.ignored
+      Mapping.new(term: term, source: source, ignored: true, problem: "Marked \"don't track\".", **marks)
     else
-      Mapping.new(term: term, source: source, article: override.article, override_id: override.id)
+      Mapping.new(term: term, source: source, article: override.article, **marks)
     end
   end
 

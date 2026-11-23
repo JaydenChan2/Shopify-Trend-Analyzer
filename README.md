@@ -190,8 +190,13 @@ How the public deploy behaves:
   `SHOPIFY_CLIENT_SECRET` in the service's Environment tab. The live demo does
   this with a dev store of trend products. Anyone with the link sees that store's
   product names (the app only reads products), so use a dev store, not a real one.
-- **Mapping overrides are locked.** In production, *Fix mapping* is turned off
-  unless `OVERRIDES_PASSWORD` is set. If it is set, saving asks for a username
+- **Demo mode (`DEMO_MODE=true`, set in `render.yaml`).** Visitors can use
+  *Fix mapping*, *Don't track* and *Remove override*, but their changes are kept in
+  their own session cookie, layered on top of the shared seeded overrides
+  (`web/db/seeds.rb`), so nobody can change what other visitors see. The header
+  shows "Demo store" instead of the shop domain.
+- **Without demo mode**, overrides are saved for everyone. In production that's
+  locked unless `OVERRIDES_PASSWORD` is set; if it is, saving asks for a username
   (`admin`, or `OVERRIDES_USER`) and that password.
 - **Free plan limits.** The service sleeps after about 15 minutes idle, and the
   first visit afterwards takes up to a minute. Storage is wiped on every deploy

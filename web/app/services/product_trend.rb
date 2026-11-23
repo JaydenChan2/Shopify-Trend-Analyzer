@@ -22,8 +22,8 @@ class ProductTrend
                  "Possible surge (unconfirmed)", "No surge detected", "Not enough data", "Not mapped",
                  "Not tracked"].freeze
 
-  def self.rows(products, as_of:, wikipedia: WikipediaClient.new)
-    new(wikipedia, as_of).rows(products)
+  def self.rows(products, as_of:, wikipedia: WikipediaClient.new, overrides: OverrideSet.shared)
+    new(wikipedia, as_of, overrides).rows(products)
   end
 
   # The checks every tracked article gets, whether it came from the store or from
@@ -35,10 +35,10 @@ class ProductTrend
             hindsight: Hindsight.call(article: article, result: result, wikipedia: wikipedia), **fields)
   end
 
-  def initialize(wikipedia, as_of)
+  def initialize(wikipedia, as_of, overrides = OverrideSet.shared)
     @wikipedia = wikipedia
     @as_of = as_of
-    @mapper = ProductMapper.new(wikipedia: wikipedia)
+    @mapper = ProductMapper.new(wikipedia: wikipedia, overrides: overrides)
   end
 
   def rows(products)

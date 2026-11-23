@@ -16,7 +16,9 @@ Rails.application.routes.draw do
   get "discover", to: "discover#index", as: :discover
 
   # Merchant corrections to the product -> Wikipedia mapping.
-  resources :mapping_overrides, only: %i[create destroy]
+  # Overrides are keyed by search term (session-scoped ones have no id), so removal takes ?term=.
+  resources :mapping_overrides, only: :create
+  delete "mapping_overrides", to: "mapping_overrides#destroy"
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest

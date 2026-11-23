@@ -35,7 +35,7 @@
       <dt>Searched for</dt>
       <dd class="terms">
         <% row.mappings.each do |mapping| %>
-          <span class="term"><%= mapping.term %> <span class="muted">(<%= mapping.source %><%= ", override" if mapping.override_id %>)</span></span>
+          <span class="term"><%= mapping.term %> <span class="muted">(<%= mapping.source %><%= { shared: ", override", session: ", your override" }[mapping.override_scope] %>)</span></span>
         <% end %>
       </dd>
     </div>
