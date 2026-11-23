@@ -146,6 +146,32 @@
   systemDark.addEventListener("change", syncThemeToggles);
   syncThemeToggles();
 
+  // ---------- 6. Mobile menu ----------
+  // The button is hidden until this runs, so without JS nobody gets a dead button
+  // (the footer has the same links). Escape and link clicks close it; focus returns to the button.
+  const menuButton = $("[data-menu-toggle]");
+  const menu = $("#site-menu");
+  if (menuButton && menu) {
+    menuButton.hidden = false;
+    const setMenu = (open, { restoreFocus = false } = {}) => {
+      menuButton.setAttribute("aria-expanded", String(open));
+      menuButton.setAttribute("aria-label", open ? "Close menu" : "Menu");
+      menu.hidden = !open;
+      if (open) $("a", menu)?.focus();
+      else if (restoreFocus) menuButton.focus();
+    };
+    menuButton.addEventListener("click", () => setMenu(menu.hidden));
+    menu.addEventListener("click", (event) => { if (event.target.closest("a")) setMenu(false); });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !menu.hidden) setMenu(false, { restoreFocus: true });
+    });
+    document.addEventListener("click", (event) => {
+      if (!menu.hidden && !event.target.closest("#site-menu, [data-menu-toggle]")) setMenu(false);
+    });
+    // Back to a wide screen: the panel isn't needed.
+    window.matchMedia("(min-width: 1041px)").addEventListener("change", (e) => { if (e.matches) setMenu(false); });
+  }
+
   // ---------- 5. Sections loaded after the page (dashboard cards, Discover results) ----------
   // The server renders the page shell at once; the slow, Wikipedia-backed part comes from
   // data-lazy-src. Without JS, the <noscript> link loads the full page instead.

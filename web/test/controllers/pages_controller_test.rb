@@ -45,4 +45,22 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   ensure
     TrendsController.wikipedia_client = nil
   end
+
+  test "mobile menu: a toggle that controls a panel with every nav link" do
+    get root_path
+    assert_select "button.menu-toggle[aria-controls=site-menu][aria-expanded=false][hidden]" # JS reveals it
+    assert_select "nav#site-menu[hidden]" do
+      assert_select "a[href=?]", discover_path
+      assert_select "a[href=?]", methodology_path
+      assert_select "a.btn", "Open dashboard"
+    end
+  end
+
+  test "the header's Open dashboard button is hidden on the dashboard itself" do
+    get dashboard_path
+    assert_select ".nav-cta", 0
+    assert_select "#site-menu a.btn", 0
+    get discover_path
+    assert_select ".nav-cta", "Open dashboard"
+  end
 end
