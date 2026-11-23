@@ -151,7 +151,9 @@ cd web
 bundle install
 bin/rails server      # http://localhost:3000 (landing page; the app is at /dashboard)
 bin/rails db:prepare  # creates the SQLite database (mapping overrides)
-bin/rails test        # 136 tests, incl. Python↔Ruby parity and as_of no-lookahead
+bin/rails test        # 185 tests, incl. Python↔Ruby parity and as_of no-lookahead
+node script/check_layout.mjs   # with the server running: no horizontal scroll at 320/375/414px,
+                               # no console errors or CSP violations (uses your local Chrome)
 ```
 
 Without Shopify credentials the app runs in **demo mode** with sample products.
