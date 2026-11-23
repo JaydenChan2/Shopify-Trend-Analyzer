@@ -37,7 +37,7 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
 
   test "replays carry the date and the hindsight tally" do
     get discover_path(as_of: "2017-06-12", inline: 1)
-    assert_select ".banner.info", /Replay as of June 12, 2017/
+    assert_select ".banner.info", /Replay as of Jun 12, 2017/
     assert_select ".pill-accent", /Jun 12, 2017/
   end
 

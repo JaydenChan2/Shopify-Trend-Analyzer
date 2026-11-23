@@ -4,7 +4,7 @@
   <div class="banner info">
     <strong>How these were found:</strong>
     the <%= number_with_delimiter(@result.scanned) %> most-read English Wikipedia articles for
-    <%= @result.week_start.strftime("%b %-d") %>–<%= @result.week_end.strftime("%b %-d, %Y") %>,
+    <%= human_week_range(@result.week_start, @result.week_end) %>,
     kept only if Wikidata says they're a product (toys, food, drinks, clothing, beauty, gadgets, games, brands).
     Only big trends make that list: roughly 10,000+ views a day.
   </div>

@@ -22,10 +22,10 @@
     </div>
   </div>
   <div class="footer-legal">
-    <%# Numbers from backtest/results/step_d_results.md, analysis (a). Update if the model is retrained. %>
+    <%# Computed from backtest/results/step_d_predictions.csv (BacktestStats), analysis (a). %>
     <p>
-      Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends: leave-one-out accuracy 75% (95% CI 51–90%)
-      vs 62% for "still rising in week 6". The difference is within noise at this sample size. Labels describe public
+      Model backtested on n = <%= TrendModel.instance.trained_on["n"] %> past trends: leave-one-out accuracy <%= BacktestStats.percent(:a, :logreg) %> (95% CI <%= BacktestStats.interval(:a, :logreg) %>)
+      vs <%= BacktestStats.percent(:a, :naive) %> for "still rising in week 6". The difference is within noise at this sample size. Labels describe public
       interest (Wikipedia pageviews), not sales. Confidence is the model's probability, not a guarantee.
     </p>
   </div>

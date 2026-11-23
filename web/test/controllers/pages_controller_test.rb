@@ -63,4 +63,22 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get discover_path
     assert_select ".nav-cta", "Open dashboard"
   end
+
+  test "accuracy figures come from one source and agree on every page" do
+    [root_path, methodology_path].each do |path|
+      get path
+      assert_includes response.body, "62.5%", path
+      assert_includes response.body, "51–90%", path
+      refute_match(/\b62%/, response.body, "#{path} still shows the rounded 62%")
+    end
+    get methodology_path
+    assert_select "table.results tr.is-primary", /75%.*\[51–90\]/m
+    assert_select ".callout", /12 vs 10/
+  end
+
+  test "dates for people use one format; the technical as_of stays ISO" do
+    get root_path
+    assert_includes response.body, "as_of = 2017-12-31"
+    assert_includes response.body, "Dec 24, 2017"
+  end
 end

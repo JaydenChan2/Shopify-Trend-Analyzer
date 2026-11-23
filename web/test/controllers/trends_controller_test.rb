@@ -84,7 +84,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
 
   test "trend panel replay keeps as_of and says so" do
     get trend_path(article: "Matcha", as_of: "2017-06-12"), xhr: true
-    assert_select "p.hint", /Replay as of June 12, 2017/
+    assert_select "p.hint", /Replay as of Jun 12, 2017/
   end
 
   test "an ignored term shows as Not tracked" do
@@ -95,7 +95,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
 
   test "replay keeps as_of in the fix-mapping form" do
     get dashboard_path(as_of: "2017-06-12", inline: 1)
-    assert_select ".banner.info", /Replay as of June 12, 2017/
+    assert_select ".banner.info", /Replay as of Jun 12, 2017/
     assert_select "details.fix input[name=as_of][value=?]", "2017-06-12"
   end
 
@@ -166,7 +166,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_empty wiki.series_requests, "no Wikipedia calls for the shell"
     assert_select ".lazy[data-lazy-src=?][aria-busy=true]", dashboard_cards_path(as_of: "2017-06-12")
     assert_select ".lazy noscript", /Show products/
-    assert_select ".banner.info", /Replay as of June 12, 2017/
+    assert_select ".banner.info", /Replay as of Jun 12, 2017/
     assert_select ".product-card", 0
   end
 

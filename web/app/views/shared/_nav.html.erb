@@ -13,7 +13,7 @@
       <% end %>
     </nav>
     <div class="nav-actions">
-      <% if @replay %><span class="pill pill-accent nav-replay">Replay · <%= @as_of.strftime("%b %-d, %Y") %></span><% end %>
+      <% if @replay %><span class="pill pill-accent nav-replay">Replay · <%= human_date(@as_of) %></span><% end %>
       <% if @source && (DemoMode.on? || @source.mode == :demo) %>
         <span class="pill nav-status">Demo store</span>
       <% elsif @source&.shop %>
@@ -35,7 +35,7 @@
     <% links.each do |name, path| %>
       <%= link_to name, path, "aria-current": ("page" if current_page?(path)) %>
     <% end %>
-    <% if @replay %><p class="mobile-menu-note">Replay · <%= @as_of.strftime("%b %-d, %Y") %></p><% end %>
+    <% if @replay %><p class="mobile-menu-note">Replay · <%= human_date(@as_of) %></p><% end %>
     <% unless on_dashboard %>
       <%= link_to "Open dashboard", dashboard_path(as_of: replay_as_of), class: "btn btn-primary" %>
     <% end %>

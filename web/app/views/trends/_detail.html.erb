@@ -61,6 +61,6 @@
   <% end %>
 
   <% if @replay %>
-    <p class="hint">Replay as of <%= @as_of.strftime("%B %-d, %Y") %>: weeks after it aren't shown or used.</p>
+    <p class="hint">Replay as of <%= human_date(@as_of) %>: weeks after it aren't shown or used.</p>
   <% end %>
 </article>

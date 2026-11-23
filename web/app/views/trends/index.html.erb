@@ -27,8 +27,8 @@
     </div>
     <% if @replay %>
       <div class="banner info">
-        <strong>Replay as of <%= @as_of.strftime("%B %-d, %Y") %>.</strong>
-        Only data from complete weeks up to <%= LiveLabel.last_complete_week_end(@as_of) %> is used.
+        <strong>Replay as of <%= human_date(@as_of) %>.</strong>
+        Only data from complete weeks up to <%= human_date(LiveLabel.last_complete_week_end(@as_of)) %> is used.
         <%= link_to "Back to today ›", dashboard_path %>
       </div>
     <% end %>

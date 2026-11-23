@@ -24,7 +24,7 @@
     <p class="reason"><%= row.error %></p>
   <% else %>
     <p class="reason"><%= row.result.reason %></p>
-    <% if row.result.onset_week %><p class="meta">Interest jumped the week of <%= row.result.onset_week %>.</p><% end %>
+    <% if row.result.onset_week %><p class="meta">Interest jumped the week of <%= human_date(row.result.onset_week) %>.</p><% end %>
   <% end %>
   <% row.notes.to_a.each do |note| %><p class="note"><%= note %></p><% end %>
   <% if @replay && row.hindsight %><%= render "trends/hindsight", hindsight: row.hindsight %><% end %>
