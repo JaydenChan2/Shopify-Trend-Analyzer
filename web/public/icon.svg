@@ -1,3 +1,11 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Spike or Stay logo: a navy tile with a line that rises, then levels off. Same mark as app/views/shared/_logo. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13315c"/>
+      <stop offset="1" stop-color="#0b2545"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="144" fill="url(#tile)"/>
+  <polyline points="96,348 192,252 248,292 344,140 432,180" fill="none" stroke="#5eead4" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

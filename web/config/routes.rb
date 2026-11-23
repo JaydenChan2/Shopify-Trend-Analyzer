@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   # Marketing site
   root "pages#home"
+  get "sitemap.xml", to: "seo#sitemap", as: :sitemap, defaults: { format: :xml }
+  get "robots.txt", to: "seo#robots", as: :robots
   get "how-it-works", to: "pages#methodology", as: :methodology
 
   # The app: products, mapped term, label, confidence, reasons.

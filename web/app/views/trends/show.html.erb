@@ -3,8 +3,10 @@
   <%= render "detail", detail: @detail %>
 <% else %>
   <% content_for :title, "#{@product_title} · Spike or Stay" %>
+  <% content_for :description, "#{@product_title}: #{@detail.result.label}. #{@detail.result.reason}" %>
   <%= render "shared/nav" %>
   <main class="wrap app detail-page">
+    <h1 class="visually-hidden">Trend for <%= @product_title %></h1>
     <p><%= link_to "‹ All products", dashboard_path(as_of: (@replay ? params[:as_of] : nil)), class: "back-link" %></p>
     <div class="detail-card"><%= render "detail", detail: @detail %></div>
   </main>
