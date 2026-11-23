@@ -17,16 +17,18 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
     DiscoverController.wikidata_client = nil
   end
 
-  test "shows surging products as cards and steady ones as a list" do
+  test "shows the top products by momentum as ranked cards" do
     get discover_path(inline: 1)
     assert_response :success
-    assert_select ".product-card", 1
+    assert_select ".product-card", 2
     assert_select ".product-card .product-title", "Fidget spinner"
+    assert_select ".product-card .rank", "#1"
+    assert_select ".product-card .momentum", /× last week vs the 8 before/
     assert_select ".product-card .pill", "toy"
     assert_select ".product-card a.card-open[href^=?]", "/trend?"
-    assert_select ".steady-list li", 1
-    assert_select ".steady-list a[data-trend]", "M&M's"
+    assert_select ".steady-list li", 0
     assert_select ".banner.info", /most-read English Wikipedia articles/
+    assert_select ".banner.info", /ranked by momentum/
   end
 
   test "no store mapping on Discover: no fix forms" do
@@ -44,7 +46,7 @@ class DiscoverControllerTest < ActionDispatch::IntegrationTest
   test "an empty week says so instead of showing nothing" do
     DiscoverController.wikipedia_client = FakeWikipedia.new
     get discover_path(inline: 1)
-    assert_select ".empty-state", /No product on the most-read list/
+    assert_select ".empty-state", /No products on the most-read list in these four weeks/
   end
 
   test "a Wikipedia outage shows a banner, not a crash" do

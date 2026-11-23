@@ -5,7 +5,7 @@ module DiscoverResults
   module_function
 
   def fetch(as_of, wikipedia: WikipediaClient.new, wikidata: WikidataClient.new)
-    key = ["discover-v1", LiveLabel.last_complete_week_end(as_of), Date.current]
+    key = ["discover-v2", LiveLabel.last_complete_week_end(as_of), Date.current]
     Rails.cache.fetch(key, expires_in: 1.day) do
       TrendingProducts.call(as_of: as_of, wikipedia: wikipedia, wikidata: wikidata)
     end

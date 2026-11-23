@@ -14,7 +14,8 @@ class WikidataClientTest < ActiveSupport::TestCase
     }.freeze
     PARENTS = {
       "Q100" => ["Q11422"], "Q5" => ["Q215627"], "Q215627" => [],
-      "Q300" => ["Q7397", "Q431289"], "Q400" => ["Q40050", "Q12140"],
+      "Q300" => ["Q7397", "Q431289", "6baa182ab30351d30e9db573fab348b4"], # last one: an "unknown value" blank node
+      "Q400" => ["Q40050", "Q12140"],
       "Q500" => ["Q501"], **(501..520).to_h { |i| ["Q#{i}", ["Q#{i + 1}"]] }, "Q521" => ["Q11422"]
     }.freeze
 
@@ -44,6 +45,13 @@ class WikidataClientTest < ActiveSupport::TestCase
   test "keeps products, drops people, software and franchises" do
     kinds = GraphWikidata.new.product_kinds(%w[Q1 Q2 Q3 Q4 Q6])
     assert_equal({ "Q1" => ["toy"], "Q4" => ["drink"] }, kinds)
+  end
+
+  test "blank-node 'unknown value' parents are ignored, not stored as types" do
+    client = GraphWikidata.new
+    client.product_kinds(%w[Q3])
+    refute client.known_parents.key?("6baa182ab30351d30e9db573fab348b4")
+    refute_includes client.known_parents["Q300"], "6baa182ab30351d30e9db573fab348b4"
   end
 
   test "stops climbing after MAX_DEPTH levels" do

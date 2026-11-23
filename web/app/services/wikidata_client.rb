@@ -57,7 +57,7 @@ class WikidataClient
   def direct_types(qids)
     rows = in_parallel(qids.each_slice(100).to_a) do |batch|
       Rails.cache.fetch(["wikidata-types-v1", batch.sort], expires_in: 7.days) do
-        sparql(<<~SPARQL).map { |row| [qid(row, "item"), qid(row, "type")] }
+        sparql(<<~SPARQL).map { |row| [qid(row, "item"), qid(row, "type")] }.select { |_, type| item_id?(type) }
           SELECT ?item ?type WHERE {
             VALUES ?item { #{batch.map { |q| "wd:#{q}" }.join(' ')} }
             { ?item wdt:P31 ?type } UNION { ?item wdt:P279 ?type }
@@ -117,7 +117,7 @@ class WikidataClient
     types.each { |t| parents[t] = cached[parents_key(t)] if cached.key?(parents_key(t)) }
     types.reject { |t| parents.key?(t) }.each_slice(150) do |batch|
       found = batch.to_h { |t| [t, []] }
-      sparql(<<~SPARQL).each { |row| found[qid(row, "type")] << qid(row, "parent") }
+      sparql(<<~SPARQL).each { |row| found[qid(row, "type")] << qid(row, "parent") if item_id?(qid(row, "parent")) }
         SELECT ?type ?parent WHERE {
           VALUES ?type { #{batch.map { |q| "wd:#{q}" }.join(' ')} }
           ?type wdt:P279 ?parent
@@ -139,4 +139,7 @@ class WikidataClient
   end
 
   def qid(row, var) = row.dig(var, "value").split("/").last
+
+  # "Unknown value" statements come back as blank nodes (.well-known/genid/<hash>), not items.
+  def item_id?(id) = id.match?(/\AQ\d+\z/)
 end

@@ -11,7 +11,7 @@ module DashboardRows
   module_function
 
   def fetch(products, as_of:, overrides:, wikipedia: WikipediaClient.new)
-    key = ["dashboard-rows-v1", LiveLabel.last_complete_week_end(as_of), Date.current,
+    key = ["dashboard-rows-v2", LiveLabel.last_complete_week_end(as_of), Date.current,
            fingerprint(products), overrides.fingerprint]
     Rails.cache.fetch(key, expires_in: TTL) do
       ProductTrend.rows(products, as_of: as_of, wikipedia: wikipedia, overrides: overrides)

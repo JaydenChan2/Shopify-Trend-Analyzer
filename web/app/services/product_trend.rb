@@ -9,7 +9,8 @@ class ProductTrend
   # recent:   the last 26 complete weekly view counts, for the card's sparkline
   # hindsight: for replays, whether the call came true (Hindsight::Result), or nil
   # kinds:    Discover only: what Wikidata says it is, e.g. ["toy", "brand"]
-  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent, :hindsight, :kinds,
+  # momentum: Discover only: last week's views vs the 8 before (TrendingProducts.momentum)
+  Row = Struct.new(:products, :mapping, :mappings, :article, :result, :notes, :error, :recent, :hindsight, :kinds, :momentum,
                    keyword_init: true) do
     def initialize(**fields)
       super

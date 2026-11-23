@@ -298,8 +298,8 @@ The answer key reads data after `as_of`; the call itself never does.
 `/discover` finds products without a store (`TrendingProducts`):
 
 1. **Candidates.** The 1,000 most-read English Wikipedia articles on each day of
-   the last complete week, summed. Only days up to the replay's last complete week
-   are read (tested).
+   the last **four** complete weeks (a single week holds only a few products).
+   Only days up to the replay's last complete week are read (tested).
 2. **Products only.** Wikidata says what each one is: an article is kept if its
    type falls under toy, food, drink, clothing, cosmetics, home appliance,
    electronics, tabletop game or brand, and not under software, video game, film,
@@ -307,13 +307,16 @@ The answer key reads data after `as_of`; the call itself never does.
    "Game" and "product model" were tried and dropped: they pulled in the Premier
    League, Formula One, bombers and missiles.
 3. **Same checks** as store products: live label, sparkline, trend panel and, on
-   replays, hindsight. Cards with a surge in the last 10 weeks are shown; the rest
-   are listed as "popular, no jump".
+   replays, hindsight.
+4. **Top 5 by momentum.** Products are ranked by last week's views over the median
+   of the 8 weeks before (+1 on both, so new articles still rank). The top 5 are
+   ranked cards; the rest are listed below. Momentum only sets the order: each
+   card's label is still the onset rule and model's call.
 
 Walking Wikidata's "subclass of" graph is slow (SPARQL property paths took 2–100s
 and sometimes failed), so the app climbs it one level at a time with simple
 lookups, caches each type's parents, and ships a snapshot of the graph
-(`web/db/wikidata_parents.json`, ~5,500 types). A cold scan takes about 9 seconds;
+(`web/db/wikidata_parents.json`, ~6,800 types). List and series fetches run four at a time. A cold four-week scan takes about 6 seconds;
 a cached one is instant. Refresh the snapshot with `bin/rails discover:catalog`.
 
 On the 2017-06-12 replay, Discover finds the fidget spinner on its own and calls

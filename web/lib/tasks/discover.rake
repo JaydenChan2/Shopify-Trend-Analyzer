@@ -14,7 +14,12 @@ namespace :discover do
   task catalog: :environment do
     weeks = ENV.fetch("WEEKS", "12").to_i
     latest = LiveLabel.last_complete_week_end(Date.current)
-    week_ends = (0...weeks).map { |i| latest - 7 * i } + REPLAY_DATES.map { |d| LiveLabel.last_complete_week_end(d) }
+    # Each Discover page pools the last LOOKBACK_WEEKS weeks, so cover all of them for the replays.
+    replay_weeks = REPLAY_DATES.flat_map do |d|
+      last = LiveLabel.last_complete_week_end(d)
+      (0...TrendingProducts::LOOKBACK_WEEKS).map { |i| last - 7 * i }
+    end
+    week_ends = (0...weeks).map { |i| latest - 7 * i } + replay_weeks
 
     wikidata = WikidataClient.new
     finder = TrendingProducts.new(WikipediaClient.new, wikidata, Date.current)

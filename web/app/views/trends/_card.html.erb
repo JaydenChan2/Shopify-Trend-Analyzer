@@ -1,16 +1,21 @@
 <%# One tracked article: label, sparkline, reason, hindsight, and (for store products) the mapping.
     Locals: row (ProductTrend::Row), show_mapping (false on Discover, where there's no store mapping). %>
 <% show_mapping = local_assigns.fetch(:show_mapping, true) %>
+<% rank = local_assigns[:row_counter] && local_assigns[:ranked] ? row_counter + 1 : nil %>
 <% label = row_label(row) %>
 <% chartable = row.article && !row.error && row.recent.present? %>
 <article class="product-card tone-<%= label_tone(label) %><%= ' is-clickable' if chartable %>" data-group="<%= label_group(label) %>">
   <div class="card-top">
+    <% if rank %><span class="rank num" aria-label="Rank <%= rank %>">#<%= rank %></span><% end %>
     <span class="label tone-<%= label_tone(label) %>"><span class="label-dot"></span><%= label_text(row) %></span>
     <% if row.products.size > 1 %><span class="pill"><%= row.products.size %> products</span><% end %>
     <% if row.kinds.present? %><span class="pill"><%= row.kinds.first %></span><% end %>
   </div>
 
   <h3 class="product-title"><%= row.products.first[:title] %></h3>
+  <% if row.momentum %>
+    <p class="momentum"><span class="num tone-<%= row.momentum >= 1.5 ? "success" : "neutral" %>"><%= format("%.1f", row.momentum) %>×</span> last week vs the 8 before</p>
+  <% end %>
   <% if row.products.size > 1 %>
     <details class="group">
       <summary>+<%= row.products.size - 1 %> more</summary>
