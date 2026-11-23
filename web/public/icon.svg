@@ -1,11 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Spike or Stay logo: an ink tile with a line that rises, then levels off. Same mark as app/views/shared/_logo. -->
-  <defs>
-    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2a2926"/>
-      <stop offset="1" stop-color="#1d1c1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="96" fill="url(#tile)"/>
-  <polyline points="96,348 192,252 248,292 344,140 432,180" fill="none" stroke="#fbfaf6" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Spike or Stay logo: a near-black tile with a signal-green line that rises, then levels off. Same mark as app/views/shared/_logo. -->
+  <rect width="512" height="512" rx="120" fill="#0c0e11"/>
+  <rect x="8" y="8" width="496" height="496" rx="112" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="16"/>
+  <polyline points="96,348 192,252 248,292 344,140 432,180" fill="none" stroke="#3dffa0" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -47,19 +47,12 @@
 
   <%# ---------- The numbers (all real) ---------- %>
   <section class="wrap">
-    <table class="facts">
-      <caption class="visually-hidden">Backtest summary</caption>
-      <tbody>
-        <tr>
-          <th scope="row">Past trends backtested</th><td class="num stat-strip-n"><%= TrendModel.instance.trained_on["n"] %></td>
-          <th scope="row">Model accuracy (leave-one-out)</th><td class="num"><%= BacktestStats.percent(:a, :logreg) %> <span>95% CI <%= BacktestStats.interval(:a, :logreg) %></span></td>
-        </tr>
-        <tr>
-          <th scope="row">"Still rising" baseline</th><td class="num"><%= BacktestStats.percent(:a, :naive) %></td>
-          <th scope="row">Lookahead</th><td class="num">0 weeks <span>enforced by tests</span></td>
-        </tr>
-      </tbody>
-    </table>
+    <dl class="facts" aria-label="Backtest summary">
+      <div><dt>Past trends backtested</dt><dd class="num stat-strip-n"><%= TrendModel.instance.trained_on["n"] %></dd></div>
+      <div><dt>Model accuracy · leave-one-out</dt><dd class="num"><%= BacktestStats.percent(:a, :logreg) %><span>95% CI <%= BacktestStats.interval(:a, :logreg) %></span></dd></div>
+      <div><dt>"Still rising" baseline</dt><dd class="num"><%= BacktestStats.percent(:a, :naive) %><span>simple rule, same trends</span></dd></div>
+      <div><dt>Lookahead</dt><dd class="num">0 weeks<span>enforced by tests</span></dd></div>
+    </dl>
   </section>
 
   <%# ---------- How it works ---------- %>

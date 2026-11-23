@@ -19,8 +19,8 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Apply a saved theme choice before first paint, so dark mode never flashes light.
-        No saved choice: CSS follows the system setting. %>
+    <%# Apply a saved theme choice before first paint, so there's no flash.
+        No saved choice: dark, the default look. %>
     <script nonce="<%= content_security_policy_nonce %>">
       try {
         var savedTheme = localStorage.getItem("theme");

@@ -118,10 +118,9 @@
   });
 
   // ---------- 4. Light / dark toggle ----------
-  // An explicit choice is stored and set as <html data-theme>; with none, CSS follows the system.
+  // Dark is the default look; a saved choice is set as <html data-theme>.
   const root = document.documentElement;
-  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
-  const currentTheme = () => root.dataset.theme || (systemDark.matches ? "dark" : "light");
+  const currentTheme = () => root.dataset.theme || "dark";
 
   function syncThemeToggles() {
     const dark = currentTheme() === "dark";
@@ -143,7 +142,6 @@
     syncThemeToggles();
   });
 
-  systemDark.addEventListener("change", syncThemeToggles);
   syncThemeToggles();
 
   // ---------- 6. Mobile menu ----------

@@ -76,19 +76,19 @@ The dashboard, top to bottom:
     *sustained* or *spike* (the logistic regression's per-feature contribution),
     adding up to the shown probability
 
-The look is a "research notebook": it reads like an analyst's report rather than
-a SaaS template. Serif headings on a paper-coloured page, 1px rules instead of
-floating cards, numbers in a mono face, small radii, no gradients or glows, and one
-muted colour per meaning (green = sustained, terracotta = spike, ochre = too early).
-The landing page's Fig. 1 is real data (fidget spinner vs air fryer, from the
-backtest's parity fixture in `web/db/landing_figure.json`), not a mock-up. Fonts are
-system fonts, so the Content-Security-Policy stays `'self'`. The charts are SVG built
-in Ruby (`TrendChart`), and interactivity is one small plain-JS file
+The look is futuristic minimal: a near-black canvas with a faint engineering grid
+behind the hero, hairline borders, big tight headings, small uppercase mono labels
+and mono numbers, and one signal colour per meaning (green = sustained, coral =
+spike, amber = too early), with a soft glow on chart lines. The landing page's
+Fig. 1 is real data (fidget spinner vs air fryer, from the backtest's parity
+fixture in `web/db/landing_figure.json`), not a mock-up. Fonts are system fonts, so
+the Content-Security-Policy stays `'self'`. The charts are SVG built in Ruby
+(`TrendChart`), and interactivity is one small plain-JS file
 (`web/app/assets/javascripts/app.js`). There's no front-end framework or build step.
 
-**Dark mode** follows the system setting by default. The sun/moon button in the nav
-overrides it, and the choice is remembered in the browser. A tiny script in the
-page head applies a saved choice before the page draws, so there's no flash.
+**Dark by default.** The sun/moon button in the nav switches to light mode, and
+the choice is remembered in the browser. A tiny script in the page head applies a
+saved choice before the page draws, so there's no flash.
 
 Everything works without JavaScript too: each card links to a standalone
 `/trend` page with the same panel.
