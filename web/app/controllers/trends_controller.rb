@@ -61,7 +61,7 @@ class TrendsController < ApplicationController
   def load_rows
     @source = product_source.call
     wikipedia = self.class.wikipedia_client || WikipediaClient.new
-    @rows = ProductTrend.rows(@source.products, as_of: @as_of, wikipedia: wikipedia, overrides: OverrideSet.for(session))
+    @rows = DashboardRows.fetch(@source.products, as_of: @as_of, wikipedia: wikipedia, overrides: OverrideSet.for(session))
   rescue WikipediaClient::MissingContact => e
     @fatal_error = e.message
     @rows = []

@@ -17,7 +17,7 @@ module CacheWarmer
     started = Time.current
     products = step(logger, "store products") { ProductSource.call.products } || []
     dates = [Date.current] + DASHBOARD_REPLAYS.map { |d| Date.iso8601(d) }
-    dates.each { |date| step(logger, "dashboard #{date}") { ProductTrend.rows(products, as_of: date) } }
+    dates.each { |date| step(logger, "dashboard #{date}") { DashboardRows.fetch(products, as_of: date, overrides: OverrideSet.shared) } }
     ([Date.current] + DISCOVER_REPLAYS.map { |d| Date.iso8601(d) }).each do |date|
       step(logger, "discover #{date}") { DiscoverResults.fetch(date) }
     end

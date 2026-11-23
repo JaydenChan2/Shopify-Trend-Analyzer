@@ -35,6 +35,13 @@ class OverrideSet
     !@session.nil?
   end
 
+  # Changes whenever the overrides that apply to this request change (for cache keys).
+  def fingerprint
+    shared = MappingOverride.pick(Arel.sql("COUNT(*)"), Arel.sql("MAX(updated_at)"))
+    own = session_scoped? ? session_entries.sort.to_h : {}
+    Digest::SHA256.hexdigest([shared, own].to_json)[0, 16]
+  end
+
   # The override deciding `term`, or nil (automatic search).
   def lookup(term)
     key = self.class.normalize(term)

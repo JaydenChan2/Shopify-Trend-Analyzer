@@ -26,4 +26,18 @@ class OverrideSetTest < ActiveSupport::TestCase
     assert_equal OverrideSet::MAX_SESSION_ENTRIES, session[OverrideSet::SESSION_KEY].size
     assert session[OverrideSet::SESSION_KEY].key?("term #{OverrideSet::MAX_SESSION_ENTRIES + 4}"), "newest kept"
   end
+
+  test "the fingerprint changes when shared or visitor overrides change" do
+    session = {}
+    set = OverrideSet.new(session: session)
+    before = set.fingerprint
+    assert_equal before, OverrideSet.new(session: {}).fingerprint, "same overrides, same fingerprint"
+
+    set.save_for_visitor("mug", ignored: true)
+    refute_equal before, OverrideSet.new(session: session).fingerprint
+
+    shared_before = OverrideSet.shared.fingerprint
+    MappingOverride.create!(term_key: "scrunchie", ignored: true)
+    refute_equal shared_before, OverrideSet.shared.fingerprint
+  end
 end
