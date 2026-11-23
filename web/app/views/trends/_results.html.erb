@@ -11,8 +11,21 @@
 <% end %>
 
 <% if @rows.any? %>
+  <% counts = summary_counts(@rows) %>
+  <% if counts.dig("surge", 1).zero? %>
+    <%# No surge: say so plainly instead of a big "0", and show where a surge can be seen. %>
+    <div class="callout-empty" role="status">
+      <p><strong>Nothing in this catalog <%= @replay ? "was surging on #{@as_of.strftime('%b %-d, %Y')}" : "is surging right now" %>.</strong>
+        That's the usual state: abrupt surges are rare. See what a surge looks like:</p>
+      <div class="callout-links">
+        <%= link_to "Fidget spinner, Jun 2017 (spike)", dashboard_path(as_of: "2017-06-12"), class: "btn btn-outline btn-sm" %>
+        <%= link_to "Air fryer, Dec 2017 (lasting)", dashboard_path(as_of: "2017-12-31"), class: "btn btn-outline btn-sm" %>
+      </div>
+    </div>
+    <% counts = counts.except("surge") %>
+  <% end %>
   <section class="stats" aria-label="Filter by label">
-    <% summary_counts(@rows).each do |key, (name, count)| %>
+    <% counts.each do |key, (name, count)| %>
       <button type="button" class="stat stat-<%= key %>" data-filter="<%= key %>" aria-pressed="false" <%= "disabled" if count.zero? %>>
         <span class="stat-number"><%= count %></span>
         <span class="stat-label"><%= name %></span>

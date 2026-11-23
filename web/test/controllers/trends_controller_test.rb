@@ -10,7 +10,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".banner.info", /Demo mode/
     assert_select ".product-card", minimum: 1
-    assert_select ".stat", minimum: 4
+    assert_select ".stat", minimum: 3 # no surge in the fake data: the surge tile becomes a callout
     assert_select "details.fix form[action=?]", mapping_overrides_path
   end
 
@@ -51,7 +51,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".product-card[data-group]", minimum: 1
     assert_select ".product-card svg.sparkline", minimum: 1
     assert_select ".product-card a.card-open[href^=?]", "/trend?"
-    assert_select ".stat[data-filter=surge]"
+    assert_select ".stat[data-filter=quiet]"
     assert_select "dialog.trend-dialog"
   end
 
@@ -173,5 +173,22 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".product-card", minimum: 1
     assert_select ".site-nav", 0
     assert_select "details.fix input[name=as_of][value=?]", "2017-06-12"
+  end
+
+  # ---------- nothing surging ----------
+
+  test "no surges: a callout links to the two replays instead of a bare 0 tile" do
+    get dashboard_cards_path # FakeWikipedia is flat: nothing surges
+    assert_select ".callout-empty", /Nothing in this catalog is surging right now/
+    assert_select ".callout-empty a[href=?]", dashboard_path(as_of: "2017-06-12")
+    assert_select ".callout-empty a[href=?]", dashboard_path(as_of: "2017-12-31")
+    assert_select ".stat[data-filter=surge]", 0
+  end
+
+  test "with a surge there's no callout and the tile shows the count" do
+    TrendsController.wikipedia_client = FakeWikipedia.new(series: { "Matcha" => SURGE })
+    get dashboard_cards_path
+    assert_select ".callout-empty", 0
+    assert_select ".stat[data-filter=surge] .stat-number", "1"
   end
 end
