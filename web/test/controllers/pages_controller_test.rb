@@ -81,4 +81,17 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "as_of = 2017-12-31"
     assert_includes response.body, "Dec 24, 2017"
   end
+
+  test "Content-Security-Policy is on, and the one inline script carries its nonce" do
+    get root_path
+    policy = response.headers["Content-Security-Policy"]
+    assert_match "default-src 'self'", policy
+    assert_match "object-src 'none'", policy
+    assert_match "frame-ancestors 'none'", policy
+    nonce = policy[/script-src 'self' 'nonce-([^']+)'/, 1]
+    assert nonce, "script-src has a nonce"
+    assert_select "script:not([src])" do |scripts|
+      scripts.each { |script| assert_equal nonce, script["nonce"] }
+    end
+  end
 end

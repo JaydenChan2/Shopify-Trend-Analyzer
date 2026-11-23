@@ -21,7 +21,7 @@
 
     <%# Apply a saved theme choice before first paint, so dark mode never flashes light.
         No saved choice: CSS follows the system setting. %>
-    <script>
+    <script nonce="<%= content_security_policy_nonce %>">
       try {
         var savedTheme = localStorage.getItem("theme");
         if (savedTheme === "light" || savedTheme === "dark") document.documentElement.dataset.theme = savedTheme;
