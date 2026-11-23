@@ -2,186 +2,156 @@
 <% content_for :description, ApplicationHelper::DEFAULT_DESCRIPTION %>
 <%= render "shared/nav" %>
 
-<main>
-  <%# ---------- Hero ---------- %>
-  <section class="hero">
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <span class="badge"><span class="badge-dot"></span>Backtested on <%= TrendModel.instance.trained_on["n"] %> past trends · zero lookahead</span>
-        <h1>Get an early read on whether a trend will <em>stay</em>.</h1>
-        <p class="lede">
-          Some products blow up overnight and are forgotten a month later (remember fidget spinners?).
-          Others keep selling for years. This tool, made for Shopify store owners, tells you which is which.
-        </p>
-        <div class="hero-actions">
-          <%= link_to "Open the dashboard", dashboard_path, class: "btn btn-primary btn-lg" %>
-          <%= link_to "See how it works", methodology_path, class: "btn btn-outline btn-lg" %>
-        </div>
-        <p class="hero-note">Made to support Shopify businesses · Free demo with sample products, no sign-up needed</p>
-      </div>
+<main class="paper">
+  <%# ---------- Opening ---------- %>
+  <header class="wrap opening">
+    <p class="kicker">A Shopify app · v0 · backtested on <%= TrendModel.instance.trained_on["n"] %> past trends</p>
+    <h1>Get an early read on whether a trend will stay.</h1>
+    <p class="lede">
+      Some products blow up overnight and are forgotten a month later. Others keep selling for years.
+      Spike or Stay watches how many people read about each product on Wikipedia and, six weeks into a surge,
+      makes a call: likely to last, or likely to fade.
+    </p>
+    <div class="actions">
+      <%= link_to "Open the dashboard", dashboard_path, class: "btn btn-primary" %>
+      <%= link_to "Read the method", methodology_path, class: "btn btn-outline" %>
+    </div>
+  </header>
 
-      <%# Illustration of a real replay result (Air fryer, Dec 31 2017): label, confidence and onset are real. %>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="float-chip chip-top"><span class="chip-icon up">↑</span><div><strong>5.8× usual level</strong><span>over the first 6 weeks</span></div></div>
-        <div class="mock-card">
-          <div class="mock-head">
-            <div><span class="mock-kicker">Kitchen · Air fryer</span><strong>5.8qt Basket Air Fryer</strong></div>
-            <span class="label tone-success"><span class="label-dot"></span>Likely sustained · 67%</span>
+  <%# ---------- Fig. 1: two real trends ---------- %>
+  <figure class="wrap fig">
+    <div class="fig-panels">
+      <% landing_trends.each do |trend| %>
+        <% label, confidence, tone = landing_call(trend) %>
+        <div class="fig-panel tone-<%= tone %>">
+          <div class="fig-head">
+            <strong><%= trend["name"] %></strong>
+            <span class="label tone-<%= tone %>"><span class="label-dot"></span><%= label %> · <%= percent(confidence) %></span>
           </div>
-          <svg class="mock-chart" viewBox="0 0 320 120" preserveAspectRatio="none">
-            <defs><linearGradient id="hero-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#059669" stop-opacity="0.25"/><stop offset="1" stop-color="#059669" stop-opacity="0"/></linearGradient></defs>
-            <line x1="0" x2="320" y1="72" y2="72" class="mock-ref"/>
-            <rect x="244" y="6" width="44" height="108" class="mock-window"/>
-            <polygon fill="url(#hero-fill)" points="0,120 0,104 20,103 40,101 60,99 80,100 100,96 120,92 140,95 160,90 180,93 200,91 220,88 236,80 244,70 252,52 260,14 268,40 276,36 284,28 292,46 300,50 320,56 320,120"/>
-            <polyline class="mock-line" points="0,104 20,103 40,101 60,99 80,100 100,96 120,92 140,95 160,90 180,93 200,91 220,88 236,80 244,70 252,52 260,14 268,40 276,36 284,28 292,46 300,50 320,56"/>
-          </svg>
-          <div class="mock-foot"><span><i class="key key-dash"></i>Surge bar</span><span><i class="key key-window"></i>6 weeks the model reads</span></div>
+          <%= landing_figure_svg(trend) %>
+          <p class="fig-note">
+            A year later: <%= trend["outcome"] == "sustained" ? "still" : "only" %>
+            <span class="num"><%= percent(trend["late_mean"] / trend["peak"]) %></span> of its peak
+            <%= trend["outcome"] == "sustained" ? "(lasted)" : "(faded)" %>.
+          </p>
         </div>
-        <div class="float-chip chip-bottom"><span class="chip-icon">◷</span><div><strong>Onset · Nov 6, 2017</strong><span>Replay, no data after Dec 31</span></div></div>
-      </div>
+      <% end %>
     </div>
-  </section>
+    <figcaption>
+      <strong>Fig. 1.</strong> Weekly Wikipedia views, 8 weeks before each surge to a year after.
+      <span class="key key-window"></span> the six weeks the model reads before making its call;
+      <span class="key key-threshold"></span> the bar for "lasted": months 6–12 must average a quarter of the early peak.
+      Both trends were in the training data, so this shows how it works, not how accurate it is.
+    </figcaption>
+  </figure>
 
-  <%# ---------- Stat strip (all real) ---------- %>
+  <%# ---------- The numbers (all real) ---------- %>
   <section class="wrap">
-    <div class="stat-strip">
-      <div><strong><%= TrendModel.instance.trained_on["n"] %></strong><span>past trends backtested</span></div>
-      <div><strong><%= BacktestStats.percent(:a, :logreg).delete_suffix("%") %><em>%</em></strong><span>leave-one-out accuracy (95% CI <%= BacktestStats.interval(:a, :logreg) %>)</span></div>
-      <div><strong>6<em> wks</em></strong><span>of data before each call</span></div>
-      <div><strong>0</strong><span>weeks of lookahead, enforced by tests</span></div>
-    </div>
+    <table class="facts">
+      <caption class="visually-hidden">Backtest summary</caption>
+      <tbody>
+        <tr>
+          <th scope="row">Past trends backtested</th><td class="num stat-strip-n"><%= TrendModel.instance.trained_on["n"] %></td>
+          <th scope="row">Model accuracy (leave-one-out)</th><td class="num"><%= BacktestStats.percent(:a, :logreg) %> <span>95% CI <%= BacktestStats.interval(:a, :logreg) %></span></td>
+        </tr>
+        <tr>
+          <th scope="row">"Still rising" baseline</th><td class="num"><%= BacktestStats.percent(:a, :naive) %></td>
+          <th scope="row">Lookahead</th><td class="num">0 weeks <span>enforced by tests</span></td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <%# ---------- How it works ---------- %>
-  <section class="section" id="how">
-    <div class="wrap">
-      <div class="section-intro">
-        <p class="eyebrow">How it works</p>
-        <h2>From your catalog to a call, in three steps</h2>
-        <p>No sales data needed. Just your products and what the world is reading about them.</p>
-      </div>
-      <div class="steps">
-        <div class="step"><span class="step-num">1</span><h3>Match products to interest</h3><p>Each product's type (or title) is matched to a Wikipedia article, with a sanity check and one-click fixes when the match is wrong.</p></div>
-        <div class="step"><span class="step-num">2</span><h3>Spot an abrupt surge</h3><p>A surge starts when weekly views beat 3× their usual level and 2,000 views, two weeks in a row. One-day news blips don't count.</p></div>
-        <div class="step"><span class="step-num">3</span><h3>Call it from six weeks</h3><p>A logistic regression reads only the first six weeks after the surge and estimates the chance it's still going strong half a year later.</p></div>
-      </div>
-    </div>
+  <section class="wrap section" id="how">
+    <h2 class="section-head-num"><span class="num">01</span> How it works</h2>
+    <ol class="steps">
+      <li><h3>Match</h3><p>Each product's type, or its title, is matched to a Wikipedia article. A sanity check catches bad matches, and you can fix one in a click.</p></li>
+      <li><h3>Detect</h3><p>A surge starts when weekly views pass 3× their usual level and 2,000 views, two weeks running. One-day news blips don't count.</p></li>
+      <li><h3>Call</h3><p>A logistic regression reads only the first six weeks after the surge and estimates the chance interest is still there six months on.</p></li>
+    </ol>
   </section>
 
-  <%# ---------- Feature rows ---------- %>
-  <section class="section section-tight">
-    <div class="wrap feature">
-      <div class="feature-copy">
-        <p class="eyebrow">Your whole catalog</p>
-        <h2>Every product's trend, at a glance</h2>
-        <p>One card per product, with a 26-week sparkline, a clear label and a plain-English reason. Filter to just the surges in one click.</p>
-        <ul class="checks">
-          <li><strong>Grouped automatically</strong>: twelve snowboards that share an article are one card</li>
-          <li><strong>Honest labels</strong>: "Not enough data" and "Not mapped" instead of a guess</li>
-          <li><strong>Live from Shopify</strong>: active products only, via the Admin API</li>
-        </ul>
+  <%# ---------- What you see ---------- %>
+  <section class="wrap section">
+    <h2 class="section-head-num"><span class="num">02</span> What you see</h2>
+    <div class="two-col">
+      <div class="prose-block">
+        <p>A card for every product: its label, a 26-week sparkline and the reason in plain words. Products that share an
+          article (twelve snowboards, say) become one card. When there isn't enough data, it says so instead of guessing.</p>
+        <p>Open a card for two years of weekly views, the bar the surge had to clear, and how each early signal pushed the
+          model toward "spike" or "sustained". The pushes add up to the probability on the label.</p>
       </div>
-      <div class="feature-visual" aria-hidden="true">
-        <div class="mini-grid">
-          <div class="mini-card"><span class="label tone-success"><span class="label-dot"></span>Likely sustained</span><strong>Air fryer</strong><svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline class="spark-success" points="0,20 20,19 40,18 55,15 65,10 72,3 80,8 90,6 100,9"/></svg></div>
-          <div class="mini-card"><span class="label tone-warning"><span class="label-dot"></span>Likely spike</span><strong>Fidget spinner</strong><svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline class="spark-warning" points="0,21 20,20 35,16 45,6 52,2 60,9 72,15 85,18 100,20"/></svg></div>
-          <div class="mini-card"><span class="label tone-caution"><span class="label-dot"></span>Too early to tell</span><strong>Dubai chocolate</strong><svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline class="spark-caution" points="0,21 30,20 60,19 72,14 82,7 90,5 100,6"/></svg></div>
-          <div class="mini-card"><span class="label tone-neutral"><span class="label-dot"></span>No surge</span><strong>Matcha</strong><svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline class="spark-neutral" points="0,12 15,13 30,11 45,12 60,10 75,12 90,11 100,12"/></svg></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="wrap feature feature-flip">
-      <div class="feature-copy">
-        <p class="eyebrow">Explainable by design</p>
-        <h2>Know why, not just what</h2>
-        <p>Open any product to see two years of interest, the surge bar it cleared, and how each early signal pushed the model toward "sustained" or "spike".</p>
-        <ul class="checks">
-          <li><strong>Interactive chart</strong> with the onset and the six weeks the model read</li>
-          <li><strong>Per-feature contributions</strong> that add up to the shown probability</li>
-          <li><strong>Plain-language reasons</strong>: "Interest 5.8× its usual level, holding steady"</li>
-        </ul>
-      </div>
-      <div class="feature-visual" aria-hidden="true">
+      <%# Fig. 2: the air fryer replay's real contributions (Dec 31, 2017). %>
+      <figure class="fig fig-small">
         <div class="explain-mock">
-          <strong>How the model decided</strong>
-          <div class="em-row"><span>Peak sharpness</span><div class="em-bar"><i class="pos" style="width:46%"></i></div><b>+0.77</b></div>
-          <div class="em-row"><span>Volatility</span><div class="em-bar"><i class="pos" style="width:19%"></i></div><b>+0.31</b></div>
-          <div class="em-row"><span>Acceleration</span><div class="em-bar"><i class="neg" style="width:5%"></i></div><b>−0.07</b></div>
-          <div class="em-row"><span>Growth</span><div class="em-bar"><i class="neg" style="width:3%"></i></div><b>−0.04</b></div>
-          <p>Starting point −0.25, plus these pushes → <strong>67%</strong> chance of sustained.</p>
+          <div class="em-row"><span>Peak sharpness</span><div class="em-bar"><i class="pos" style="width:46%"></i></div><b class="num">+0.77</b></div>
+          <div class="em-row"><span>Volatility</span><div class="em-bar"><i class="pos" style="width:19%"></i></div><b class="num">+0.31</b></div>
+          <div class="em-row"><span>Acceleration</span><div class="em-bar"><i class="neg" style="width:5%"></i></div><b class="num">−0.07</b></div>
+          <div class="em-row"><span>Growth</span><div class="em-bar"><i class="neg" style="width:3%"></i></div><b class="num">−0.04</b></div>
         </div>
-      </div>
-    </div>
-
-    <div class="wrap feature" id="replays">
-      <div class="feature-copy">
-        <p class="eyebrow">Replay mode</p>
-        <h2>Rewind to any week since 2016</h2>
-        <p>See exactly what the app would have said on a past date, using only the data that existed then. A good way to sanity-check it against trends you remember.</p>
-        <div class="replay-links">
-          <%= link_to dashboard_path(as_of: "2017-06-12"), class: "replay-card" do %>
-            <span class="label tone-warning"><span class="label-dot"></span>Likely spike</span><strong>Fidget spinners</strong><span>June 12, 2017 ›</span>
-          <% end %>
-          <%= link_to dashboard_path(as_of: "2017-12-31"), class: "replay-card" do %>
-            <span class="label tone-success"><span class="label-dot"></span>Likely sustained</span><strong>Air fryers</strong><span>December 31, 2017 ›</span>
-          <% end %>
-        </div>
-        <p class="fineprint">These trends were in the training data, so replays demo the pipeline rather than prove accuracy.</p>
-      </div>
-      <div class="feature-visual" aria-hidden="true">
-        <div class="timeline-mock">
-          <div class="tl-track"><span style="left:8%"></span><span style="left:30%"></span><span class="is-on" style="left:52%"></span><span style="left:78%"></span></div>
-          <div class="tl-labels"><span>2016</span><span>2017</span><span>2018</span><span>2020</span></div>
-          <p><strong>as_of = 2017-12-31</strong><br>Only weeks ending on or before Dec 24, 2017 are used.</p>
-        </div>
-      </div>
+        <figcaption><strong>Fig. 2.</strong> How the model decided on the air fryer: a starting point of −0.25 plus these pushes gives a 67% chance it lasts.</figcaption>
+      </figure>
     </div>
   </section>
 
-  <%# ---------- Honest by design (navy band) ---------- %>
-  <section class="trust">
-    <div class="wrap">
-      <div class="section-intro section-intro-dark">
-        <p class="eyebrow">Honest by design</p>
-        <h2>Built like a study, not a sales pitch</h2>
-        <p>The rules were written down before the results existed, and every number comes with its sample size.</p>
-      </div>
-      <div class="trust-grid">
-        <div><h3>Pre-registered</h3><p>Thresholds, features and analyses were committed before any model ran. Two later changes are logged with reasons.</p></div>
-        <div><h3>No lookahead</h3><p>Features read only six weeks of data, and tests feed in fake future data to prove it changes nothing.</p></div>
-        <div><h3>Uncertainty shown</h3><p>Accuracy comes with a 95% confidence interval and n = <%= TrendModel.instance.trained_on["n"] %>. Small sample, said plainly.</p></div>
-      </div>
-      <p class="trust-link"><%= link_to "Read the full methodology ›", methodology_path %></p>
+  <%# ---------- Replays ---------- %>
+  <section class="wrap section" id="replays">
+    <h2 class="section-head-num"><span class="num">03</span> Replays</h2>
+    <p class="section-lede">Pick a past date and the app answers using only the data that existed then. A year later, it checks
+      whether the call came true. (as_of = 2017-12-31 means only weeks ending on or before Dec 24, 2017 are used.)</p>
+    <%# Calls and outcomes as the live replays show them (store demo). %>
+    <div class="table-scroll">
+      <table class="data-table replays">
+        <thead><tr><th>Replay date</th><th>Product</th><th>Call</th><th>A year later</th><th>In training data?</th></tr></thead>
+        <tbody>
+          <% [["2017-06-12", "Fidget spinner", "Likely spike", "warning", "Faded", true],
+              ["2017-12-31", "Air fryer", "Likely sustained", "success", "Lasted", true],
+              ["2024-12-08", "Pop Mart", "Likely sustained", "success", "Lasted", false],
+              ["2025-01-05", "Labubu", "Likely sustained", "success", "Lasted", true]].each do |date, product, call, tone, outcome, trained| %>
+            <tr>
+              <td class="num"><%= link_to human_date(Date.iso8601(date)), dashboard_path(as_of: date) %></td>
+              <td><%= product %></td>
+              <td><span class="label tone-<%= tone %>"><span class="label-dot"></span><%= call %></span></td>
+              <td><%= outcome %> ✓</td>
+              <td><%= trained ? "Yes, not a fair test" : "No" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
+  </section>
+
+  <%# ---------- Caveats ---------- %>
+  <section class="wrap section">
+    <h2 class="section-head-num"><span class="num">04</span> Caveats</h2>
+    <ul class="caveats">
+      <li><strong>Small sample.</strong> <%= TrendModel.instance.trained_on["n"] %> labelled trends. Against the "still rising" rule the model wins by
+        <% model_k, = BacktestStats.score(:a, :logreg) %><% naive_k, = BacktestStats.score(:a, :naive) %><%= model_k - naive_k %> trends, which is within noise.</li>
+      <li><strong>Written down first.</strong> Thresholds, features and analyses were committed before any model ran; two later changes are logged with reasons.</li>
+      <li><strong>Interest isn't sales.</strong> Wikipedia readers aren't buyers. Labels describe public interest, not your demand.</li>
+      <li><strong>Only abrupt surges.</strong> Slow, steady growth never trips the 3× rule, so it shows as "No surge detected".</li>
+    </ul>
+    <p><%= link_to "Full method and results →", methodology_path %></p>
   </section>
 
   <%# ---------- FAQ ---------- %>
-  <section class="section section-soft" id="faq">
-    <div class="wrap narrow">
-      <div class="section-intro">
-        <p class="eyebrow">Questions, answered</p>
-        <h2>What people ask first</h2>
-      </div>
-      <div class="faq">
-        <details><summary>Why Wikipedia pageviews?</summary><p>They're free, public, daily and go back to 2015, so the model can be backtested on real past trends. They measure interest, not sales: readers aren't buyers, and brand articles dilute product interest. That's listed as a limitation.</p></details>
-        <details><summary>What counts as a "surge"?</summary><p>Weekly views above 3× the median of the previous 26 weeks and at least 2,000 views, for two weeks in a row. Slow, gradual growth never triggers this, so those products show "No surge detected".</p></details>
-        <details><summary>How accurate is it?</summary><p>On <%= TrendModel.instance.trained_on["n"] %> past trends, <%= BacktestStats.percent(:a, :logreg) %> leave-one-out accuracy (95% CI <%= BacktestStats.interval(:a, :logreg) %>), versus <%= BacktestStats.percent(:a, :naive) %> for a simple "still rising in week 6" rule. That's a promising signal, but the gap is within noise at this sample size.</p></details>
-        <details><summary>Does it use my sales data?</summary><p>Not yet. It reads only product titles, types and tags. Tying labels to order data is the top next step.</p></details>
-        <details><summary>What if a product maps to the wrong article?</summary><p>Every card has a "Fix mapping" form: point the product at the right article, or mark it "Don't track". Fixes apply to every product with the same search term.</p></details>
-      </div>
+  <section class="wrap section" id="faq">
+    <h2 class="section-head-num"><span class="num">05</span> Questions</h2>
+    <div class="faq">
+      <details><summary>Why Wikipedia pageviews?</summary><p>They're free, public, daily and go back to 2015, so the model can be backtested on real past trends. They measure interest, not sales: readers aren't buyers, and brand articles dilute product interest.</p></details>
+      <details><summary>What counts as a "surge"?</summary><p>Weekly views above 3× the median of the previous 26 weeks and at least 2,000 views, for two weeks in a row. Slow, gradual growth never triggers this, so those products show "No surge detected".</p></details>
+      <details><summary>How accurate is it?</summary><p>On <%= TrendModel.instance.trained_on["n"] %> past trends, <%= BacktestStats.percent(:a, :logreg) %> leave-one-out accuracy (95% CI <%= BacktestStats.interval(:a, :logreg) %>), versus <%= BacktestStats.percent(:a, :naive) %> for a simple "still rising in week 6" rule. A promising signal, but the gap is within noise at this sample size.</p></details>
+      <details><summary>Does it use my sales data?</summary><p>Not yet. It reads only product titles, types and tags. Tying labels to order data is the top next step.</p></details>
+      <details><summary>What if a product maps to the wrong article?</summary><p>Every card has a "Fix mapping" form: point the product at the right article, or mark it "Don't track". On the public demo, your fixes only apply to you.</p></details>
     </div>
   </section>
 
-  <%# ---------- CTA ---------- %>
-  <section class="wrap">
-    <div class="cta">
-      <h2>See what's surging in your catalog</h2>
-      <p>Connect a Shopify dev store, or explore the demo with sample products.</p>
-      <div class="hero-actions">
-        <%= link_to "Open the dashboard", dashboard_path, class: "btn btn-primary btn-lg" %>
-        <%= link_to "Try a replay", dashboard_path(as_of: "2017-12-31"), class: "btn btn-ghost btn-lg" %>
-      </div>
+  <section class="wrap closing">
+    <p>See what's surging in a real catalog, or rewind to 2017.</p>
+    <div class="actions">
+      <%= link_to "Open the dashboard", dashboard_path, class: "btn btn-primary" %>
+      <%= link_to "Air fryer replay", dashboard_path(as_of: "2017-12-31"), class: "btn btn-outline" %>
     </div>
   </section>
 </main>

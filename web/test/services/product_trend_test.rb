@@ -63,7 +63,7 @@ class ProductTrendTest < ActiveSupport::TestCase
     row = ProductTrend.rows([product("Fryer", "Air fryer")], as_of: Date.new(2017, 12, 31), wikipedia: wiki).first
     assert_equal ["Air fryer"], wiki.series_requests
     assert_equal "Air fryer", row.article, "the table should name the article whose views were used"
-    assert_match "was its own article until 2023-05-04", row.notes.first
+    assert_match "was its own article until May 4, 2023", row.notes.first
   end
 
   test "replay after the merge uses the redirect target" do

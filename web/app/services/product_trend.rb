@@ -76,7 +76,7 @@ class ProductTrend
 
     cutoff = StandaloneHistory.valid_until(redirect)
     if cutoff && @as_of <= cutoff
-      [redirect, ["Replay: \"#{redirect}\" was its own article until #{cutoff}, so its own views are used " \
+      [redirect, ["Replay: \"#{redirect}\" was its own article until #{cutoff.strftime('%b %-d, %Y')}, so its own views are used " \
                   "(today it redirects to \"#{mapping.article}\")."]]
     else
       [mapping.article, ["\"#{redirect}\" redirects to \"#{mapping.article}\" on Wikipedia, so these views are " \

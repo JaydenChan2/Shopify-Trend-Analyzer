@@ -4,8 +4,11 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   test "landing page has the hero, real stats and routes into the app" do
     get root_path
     assert_response :success
-    assert_select "h1 em", "stay"
-    assert_select ".stat-strip strong", text: TrendModel.instance.trained_on["n"].to_s
+    assert_select "h1", /whether a trend will stay/
+    assert_select ".facts .stat-strip-n", TrendModel.instance.trained_on["n"].to_s
+    assert_select ".fig-panel svg.fig-svg", 2 # Fig. 1: real series for both trends
+    assert_select ".fig-panel", text: /Fidget spinner.*Likely spike · 73%/m
+    assert_select ".fig-panel", text: /Air fryer.*Likely sustained · 67%/m
     assert_select "a[href=?]", dashboard_path, minimum: 1
     assert_select "a[href=?]", methodology_path, minimum: 1
     assert_select "a[href=?]", dashboard_path(as_of: "2017-12-31"), minimum: 1

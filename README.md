@@ -76,14 +76,15 @@ The dashboard, top to bottom:
     *sustained* or *spike* (the logistic regression's per-feature contribution),
     adding up to the shown probability
 
-The look is a light fintech style modelled on a
-[ClaudeCMS example landing page](https://claudecms.com/uploads/examples/02-fintech.html):
-white page, deep navy text, a green accent, italic serif accent words, pill
-buttons, soft-grey bands and a navy "trust" block. The colours and type sizes
-were measured from that page; the CSS is written from scratch, with no copied
-content, markup or branding. The charts are SVG built in Ruby (`TrendChart`), and
-interactivity is one small plain-JS file (`web/app/assets/javascripts/app.js`).
-There's no front-end framework or build step.
+The look is a "research notebook": it reads like an analyst's report rather than
+a SaaS template. Serif headings on a paper-coloured page, 1px rules instead of
+floating cards, numbers in a mono face, small radii, no gradients or glows, and one
+muted colour per meaning (green = sustained, terracotta = spike, ochre = too early).
+The landing page's Fig. 1 is real data (fidget spinner vs air fryer, from the
+backtest's parity fixture in `web/db/landing_figure.json`), not a mock-up. Fonts are
+system fonts, so the Content-Security-Policy stays `'self'`. The charts are SVG built
+in Ruby (`TrendChart`), and interactivity is one small plain-JS file
+(`web/app/assets/javascripts/app.js`). There's no front-end framework or build step.
 
 **Dark mode** follows the system setting by default. The sun/moon button in the nav
 overrides it, and the choice is remembered in the browser. A tiny script in the
